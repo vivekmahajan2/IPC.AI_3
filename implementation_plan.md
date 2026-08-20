@@ -127,9 +127,10 @@ Initialize with `npx create-expo-app` using Expo Router template. Key files:
 | `hooks/useAuth.ts` | Auth context hook (login, logout, current user) |
 | `hooks/useOfflineSync.ts` | Sync SQLite drafts to server when online |
 | `hooks/useMappings.ts` | Load/search section mappings from SQLite |
+| `context/ThemeContext.tsx` | Dynamic light/dark theme provider with SecureStore persistence |
 | `components/` | Reusable: Card, Button, Input, Badge, ChatBubble, StatusBadge, Header |
 | `types/` | TypeScript interfaces for User, FIR, Mapping, Judgment, Lawyer, etc. |
-| `constants/theme.ts` | Light theme color palette, typography |
+| `constants/theme.ts` | Light and Dark theme color palettes, typography |
 
 ---
 
@@ -218,8 +219,11 @@ python-multipart
 
 ---
 
-## Design System (Light Theme)
+## Design System (Light & Dark Theme support)
 
+The application supports both themes, defaulting to the premium **Dark Theme** to match the Law4u screenshots.
+
+### Light Theme
 ```
 Primary:        #1A56DB (Royal Blue — trust, authority)
 Secondary:      #E8590C (Saffron — Indian identity)
@@ -231,9 +235,22 @@ Border:         #E5E7EB
 Success:        #059669
 Warning:        #D97706
 Error:          #DC2626
-Card Shadow:    0 1px 3px rgba(0,0,0,0.1)
-Font:           System default (San Francisco / Roboto)
 ```
+
+### Dark Theme (Default)
+```
+Primary:        #5C93FC (Vibrant light blue accent)
+Secondary:      #FF8A4D (Bright saffron accent)
+Background:     #0F0F11 (Near-black)
+Surface:        #1E1E22 (Slate card background)
+Text Primary:   #F3F4F6 (Light gray)
+Text Secondary: #9CA3AF (Secondary gray)
+Border:         #2E2E34 (Dark gray border)
+Success:        #10B981
+Warning:        #F59E0B
+Error:          #EF4444
+```
+
 
 ---
 

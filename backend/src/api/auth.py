@@ -11,7 +11,7 @@ from ..core.security import (
     hash_password, verify_password,
     create_access_token, create_refresh_token, decode_token,
 )
-from ..core.dependencies import get_current_user, require_role
+from ..core.dependencies import get_current_user, require_role, get_current_user_optional
 from ..models.user import User, UserRole
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -130,7 +130,7 @@ async def refresh_token(request: RefreshRequest, db: AsyncSession = Depends(get_
 async def register(
     request: RegisterRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role("admin")),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == request.email))
@@ -147,6 +147,14 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid role. Must be one of: {[r.value for r in UserRole]}",
         )
+
+    # Restrict police, superior and admin accounts to admin creation
+    if role in [UserRole.ADMIN, UserRole.POLICE, UserRole.SUPERIOR]:
+        if not current_user or current_user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Creating restricted role '{role.value}' requires administrator authentication.",
+            )
 
     user = User(
         email=request.email,

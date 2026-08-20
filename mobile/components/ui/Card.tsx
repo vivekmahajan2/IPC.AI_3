@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { Colors, BorderRadius, Shadow, Spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { BorderRadius, Shadow, Spacing } from '../../constants/theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,11 +11,14 @@ interface CardProps {
 }
 
 export default function Card({ children, style, variant = 'default', padding = 'lg' }: CardProps) {
+  const { colors } = useTheme();
+
   return (
     <View
       style={[
         styles.base,
-        variant === 'outlined' && styles.outlined,
+        { backgroundColor: colors.surface },
+        variant === 'outlined' && [styles.outlined, { borderColor: colors.border }],
         variant === 'elevated' && styles.elevated,
         { padding: Spacing[padding] },
         style,
@@ -27,7 +31,6 @@ export default function Card({ children, style, variant = 'default', padding = '
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     ...Shadow.sm,
   },
@@ -36,9 +39,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   elevated: {
     ...Shadow.md,
   },
 });
+

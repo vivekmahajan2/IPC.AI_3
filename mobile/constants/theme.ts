@@ -42,6 +42,51 @@ export const Colors = {
   tabBackground: '#FFFFFF',
 };
 
+// IPC.ai Dark Theme Design System (matches Law4u dark aesthetics)
+export const DarkColors = {
+  primary: '#5C93FC',        // Vibrant blue accent
+  primaryLight: '#1E293B',   // Dark blue background for highlights
+  primaryDark: '#2563EB',    // Pressed states
+  secondary: '#FF8A4D',      // Saffron/orange accent
+  secondaryLight: '#2C1D11', // Saffron highlight
+
+  background: '#0F0F11',     // Premium dark mode near-black background
+  surface: '#1E1E22',        // Slate/card surface
+  surfaceAlt: '#2A2A30',     // Lighter surface
+
+  text: '#F3F4F6',           // Light gray primary text
+  textSecondary: '#9CA3AF',  // Gray secondary text
+  textLight: '#6B7280',      // Darker gray placeholder/disabled
+  textOnPrimary: '#FFFFFF',  // Text on primary bg
+
+  border: '#2E2E34',         // Borders
+  borderLight: '#252529',
+  divider: '#2E2E34',
+
+  success: '#10B981',
+  successLight: '#064E3B',
+  warning: '#F59E0B',
+  warningLight: '#451A03',
+  error: '#EF4444',
+  errorLight: '#4C1D1D',
+  info: '#3B82F6',
+  infoLight: '#1E3A8A',
+
+  // Status colors
+  statusDraft: '#9CA3AF',
+  statusSubmitted: '#3B82F6',
+  statusUnderReview: '#F59E0B',
+  statusApproved: '#10B981',
+  statusRejected: '#EF4444',
+  statusFinalized: '#8B5CF6',
+
+  // Tab bar
+  tabActive: '#5C93FC',
+  tabInactive: '#6B7280',
+  tabBackground: '#1E1E22',
+};
+
+
 export const Spacing = {
   xs: 4,
   sm: 8,

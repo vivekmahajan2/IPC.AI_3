@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthProvider, useAuth } from '../hooks/useAuth';
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -33,6 +34,7 @@ function AuthGate() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     if (isLoading) return;
@@ -49,15 +51,18 @@ function AuthGate() {
   }, [isAuthenticated, isLoading, segments]);
 
   return (
-    <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="judgments" options={{ headerShown: false }} />
-      <Stack.Screen name="lawyers" options={{ headerShown: false }} />
-      <Stack.Screen name="history" options={{ title: 'History' }} />
-      <Stack.Screen name="profile" options={{ title: 'Profile' }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-    </Stack>
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="judgments" options={{ headerShown: false }} />
+        <Stack.Screen name="lawyers" options={{ headerShown: false }} />
+        <Stack.Screen name="history" options={{ title: 'History' }} />
+        <Stack.Screen name="profile" options={{ title: 'Profile' }} />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+      </Stack>
+    </>
   );
 }
 
@@ -84,9 +89,11 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <StatusBar style="dark" />
-        <AuthGate />
+        <ThemeProvider>
+          <AuthGate />
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+

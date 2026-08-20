@@ -62,6 +62,20 @@ async def list_judgments(
     return result.scalars().all()
 
 
+@router.get("/search", response_model=List[JudgmentResponse])
+async def search_judgments(
+    q: Optional[str] = None,
+    court: Optional[str] = None,
+    year: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await list_judgments(q=q, court=court, year=year, skip=skip, limit=limit, db=db, current_user=current_user)
+
+
+
 @router.get("/courts")
 async def list_courts(
     db: AsyncSession = Depends(get_db),

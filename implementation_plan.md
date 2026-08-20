@@ -7,7 +7,7 @@ IPC.ai is a mobile-first legal assistant for Indian police officers, law student
 - **Expo (React Native)** mobile app with offline-capable FIR drafting, Sanhita Converter, AI legal assistant, judgments search, and lawyer directory.
 - **FastAPI** backend with PostgreSQL + pgvector, JWT auth, Groq LLM integration, and Cloudflare R2 storage.
 
-The app uses a **simple UI with a light theme** as requested.
+The app uses a **premium Dark Theme by default** and supports dynamic switching to a light theme.
 
 ---
 
@@ -78,9 +78,12 @@ Initialize with `npx create-expo-app` using Expo Router template. Key files:
 #### [NEW] [app/(tabs)/_layout.tsx](file:///c:/Users/vivek/OneDrive/Documents/vivek.phone/OneDrive/IPC.AI_@2/mobile/app/(tabs)/_layout.tsx)
 - Bottom tab navigator with icons: Home, AI, FIR, Converter, More
 
-#### [NEW] [app/(tabs)/home.tsx](file:///c:/Users/vivek/OneDrive/Documents/vivek.phone/OneDrive/IPC.AI_@2/mobile/app/(tabs)/home.tsx)
-- Dashboard with stats cards (total FIRs, pending reviews, recent activity)
-- Quick action buttons
+#### [NEW] [app/(tabs)/index.tsx](file:///d:/IPC.AI_@2/mobile/app/(tabs)/index.tsx)
+- Dashboard with responsive grid layouts based on device size.
+- Contains the main navigation grid (COI, Bare Acts, New v/s Old, and Judgment).
+- Contains the Tools & Utilities grid (Legal advice, Drafting, Daily Poll, Play Quiz) with responsive columns.
+- Houses sub-screens for Court Registry, Bare Acts Library, and Constitution of India (COI) parts.
+
 
 #### [NEW] [app/(tabs)/assistant.tsx](file:///c:/Users/vivek/OneDrive/Documents/vivek.phone/OneDrive/IPC.AI_@2/mobile/app/(tabs)/assistant.tsx)
 - Chat interface for AI legal Q&A

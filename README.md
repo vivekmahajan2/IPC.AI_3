@@ -26,7 +26,6 @@
 - **PDF Document Engine**: Generates professional Indian FIR-format PDF sheets dynamically using `ReportLab`.
 - **Storage Adapter**: Supports uploading generated PDFs directly to Cloudflare R2 storage (falls back to local filesystem if unconfigured).
 
-
 ---
 
 ## 🛠️ Tech Stack
@@ -153,4 +152,15 @@ To support debugging across multiple platforms without manual code changes:
 - **Web Client**: Resolves backend requests to `http://localhost:8000`.
 - **Android Emulator**: Resolves requests to `http://10.0.2.2:8000`.
 - **Expo Go (Physical Device)**: Uses Expo Constants to dynamically parse the computer's LAN IP from the bundler URL (e.g., `http://192.168.1.X:8000`), allowing remote API testing over Wi-Fi without hardcoding.
+
+### Responsive Multi-Column Grids
+To optimize the user interface across various screen and device sizes:
+- **Dynamic Columns**: Computes the grid column layout dynamically using React Native's `useWindowDimensions` hook.
+- **Adaptive Breakpoints**: Displays 2 columns on mobile devices, 3 columns on small tablets/larger phones, and 4 columns on larger tablets, ensuring an optimal presentation regardless of device size.
+
+### Custom Legal Reference Sub-screens
+To provide direct and seamless legal content exploration:
+- **Constitution of India (COI)**: Displays an organized index of all Constitution parts and articles, routing detailed queries to the AI Assistant.
+- **Bare Acts Library**: Aggregates all national, state, and repealed laws alongside a Law Dictionary shortcut and quick-reference chips (Rules, Regulations, Ordinances).
+
 

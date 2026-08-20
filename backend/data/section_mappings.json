@@ -310,5 +310,42 @@
     "new_text": "Notwithstanding anything contained in this Act, any information contained in an electronic record which is printed on a paper, stored, recorded or copied in optical or magnetic media produced by a computer shall be deemed to be also a document, if the conditions mentioned in this section are satisfied.",
     "mapping_notes": "Substantively similar with minor clarification",
     "is_identical": false
+  },
+  {
+    "old_act": "CrPC",
+    "old_section": "154",
+    "old_title": "Information in cognizable cases",
+    "old_text": "Every information relating to the commission of a cognizable offence, if given orally to an officer in charge of a police station, shall be reduced to writing by him or under his direction...",
+    "new_act": "BNSS",
+    "new_section": "173",
+    "new_title": "Information in cognizable cases",
+    "new_text": "Every information relating to the commission of a cognizable offence, irrespective of the place where the offence was committed, may be given orally or by electronic communication and shall be recorded...",
+    "mapping_notes": "Enhanced with Zero FIR and electronic communication provisions",
+    "is_identical": false
+  },
+  {
+    "old_act": "CrPC",
+    "old_section": "41",
+    "old_title": "When police may arrest without warrant",
+    "old_text": "Any police officer may without an order from a Magistrate and without a warrant, arrest any person who commits in the presence of a police officer a cognizable offence...",
+    "new_act": "BNSS",
+    "new_section": "35",
+    "new_title": "When police may arrest without warrant",
+    "new_text": "Any police officer may without an order from a Magistrate and without a warrant, arrest any person who commits in the presence of a police officer a cognizable offence, subject to safeguards...",
+    "mapping_notes": "Added requirement of approval of senior officer for arrests in minor offences",
+    "is_identical": false
+  },
+  {
+    "old_act": "CrPC",
+    "old_section": "437",
+    "old_title": "When bail may be taken in case of non-bailable offence",
+    "old_text": "When any person accused of, or suspected of, the commission of any non-bailable offence is arrested or detained without warrant by an officer in charge of a police station...",
+    "new_act": "BNSS",
+    "new_section": "480",
+    "new_title": "When bail may be taken in case of non-bailable offence",
+    "new_text": "When any person accused of, or suspected of, the commission of any non-bailable offence is arrested or detained without warrant...",
+    "mapping_notes": "Substantively similar bail provisions",
+    "is_identical": true
   }
 ]
+

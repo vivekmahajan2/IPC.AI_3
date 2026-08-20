@@ -14,6 +14,7 @@ import {
   Alert,
   Linking,
   TextInput,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -39,10 +40,27 @@ export default function HomeScreen() {
   const { theme, isDark, colors, toggleTheme } = useTheme();
   const { fullSync, isSyncing, mappingsCached, downloadMappings } = useOfflineSync();
 
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Dynamic layout calculations for responsiveness
+  const getColumnsCount = (width: number) => {
+    if (width > 768) return 4;
+    if (width > 500) return 3;
+    return 2;
+  };
+
+  const columnsCount = getColumnsCount(windowWidth);
+  const cardWidth = (windowWidth - Spacing.lg * 2 - Spacing.md * (columnsCount - 1) - 4) / columnsCount;
+
   // Navigation states within Home
-  const [screenState, setScreenState] = useState<'dashboard' | 'act-comparison' | 'court-registry'>('dashboard');
+  const [screenState, setScreenState] = useState<'dashboard' | 'act-comparison' | 'court-registry' | 'bare-acts' | 'coi' | 'ai-helper'>('dashboard');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'advocate'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // AI Helper states
+  const [aiTitle, setAiTitle] = useState('AI Assistant');
+  const [aiSubtitle, setAiSubtitle] = useState('');
+  const [aiDescription, setAiDescription] = useState('');
 
   // UI interaction states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -377,9 +395,298 @@ export default function HomeScreen() {
     );
   };
 
+  // Render Sub-Screen: COI (Constitution of India)
+  const renderCOI = () => {
+    const coiParts = [
+      { part: 'Preamble', title: 'Preamble to the Constitution', range: 'Preamble' },
+      { part: 'Part I', title: 'The Union and its Territory', range: 'Articles 1-4' },
+      { part: 'Part II', title: 'Citizenship', range: 'Articles 5-11' },
+      { part: 'Part III', title: 'Fundamental Rights', range: 'Articles 12-35' },
+      { part: 'Part IV', title: 'Directive Principles of State Policy', range: 'Articles 36-51' },
+      { part: 'Part IVA', title: 'Fundamental Duties', range: 'Article 51A' },
+      { part: 'Part V', title: 'The Union', range: 'Articles 52-151' },
+      { part: 'Part VI', title: 'The States', range: 'Articles 152-237' },
+      { part: 'Part VIII', title: 'The Union Territories', range: 'Articles 239-242' },
+      { part: 'Part IX', title: 'The Panchayats', range: 'Articles 243-243O' },
+      { part: 'Part IXA', title: 'The Municipalities', range: 'Articles 243P-243ZG' },
+      { part: 'Part X', title: 'The Scheduled and Tribal Areas', range: 'Articles 244-244A' },
+      { part: 'Part XI', title: 'Relations Between the Union and the States', range: 'Articles 245-263' },
+      { part: 'Part XII', title: 'Finance, Property, Contracts and Suits', range: 'Articles 264-300A' },
+      { part: 'Part XIII', title: 'Trade, Commerce and Intercourse', range: 'Articles 301-307' },
+      { part: 'Part XIV', title: 'Services Under the Union and the States', range: 'Articles 308-323' },
+      { part: 'Part XIVA', title: 'Tribunals', range: 'Articles 323A-323B' },
+      { part: 'Part XV', title: 'Elections', range: 'Articles 324-329A' },
+      { part: 'Part XVI', title: 'Special Provisions Relating to Certain Classes', range: 'Articles 330-342' },
+      { part: 'Part XVII', title: 'Official Language', range: 'Articles 343-351' },
+      { part: 'Part XVIII', title: 'Emergency Provisions', range: 'Articles 352-360' },
+      { part: 'Part XIX', title: 'Miscellaneous', range: 'Articles 361-367' },
+      { part: 'Part XX', title: 'Amendment of the Constitution', range: 'Article 368' },
+      { part: 'Part XXI', title: 'Temporary, Transitional and Special Provisions', range: 'Articles 369-392' },
+      { part: 'Part XXII', title: 'Short Title, Commencement, Hindi Text & Repeals', range: 'Articles 393-395' },
+    ];
+
+    const filteredParts = coiParts.filter((item) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.part.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return (
+      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.subScreenHeader}>
+          <TouchableOpacity onPress={() => { setScreenState('dashboard'); setSearchQuery(''); }} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>Constitution of India</Text>
+          </View>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={styles.searchBarContainer}>
+          <TextInput
+            placeholder="Search Articles or Parts..."
+            placeholderTextColor={colors.textLight}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={[styles.registrySearchInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
+          />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.subScreenScrollContent}>
+          {filteredParts.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.courtItemCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => {
+                setAiTitle(item.part);
+                setAiSubtitle(item.title);
+                setAiDescription(`Articles range: ${item.range}.\n\nThis section describes the constitutional framework, provisions, and legal guidelines regarding ${item.title.toLowerCase()} in India.`);
+                setScreenState('ai-helper');
+                setSearchQuery('');
+              }}
+            >
+              <View style={styles.courtItemLeft}>
+                <View style={[styles.courtIconContainer, { backgroundColor: colors.primaryLight }]}>
+                  <Ionicons name="document-text" size={18} color={colors.primary} />
+                </View>
+                <View style={{ marginLeft: Spacing.sm, flex: 1 }}>
+                  <Text style={[styles.courtItemText, { color: colors.text, fontWeight: '700' }]}>{item.part}</Text>
+                  <Text style={[styles.utilityLabel, { color: colors.textSecondary, fontSize: FontSize.xxs }]}>{item.title}</Text>
+                </View>
+              </View>
+              <View style={{ alignItems: 'flex-end', marginRight: Spacing.sm }}>
+                <Text style={{ fontSize: 10, color: colors.textLight }}>{item.range}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Render Sub-Screen: Bare Acts Library
+  const renderBareActs = () => {
+    const listItems = [
+      {
+        title: 'All Bare Acts',
+        sub: 'Union of India - Act',
+        icon: 'book-outline',
+        iconBg: 'rgba(16, 185, 129, 0.1)',
+        iconColor: '#10B981',
+        action: () => {
+          setScreenState('dashboard');
+          router.push('/(tabs)/converter');
+        }
+      },
+      {
+        title: 'Indian States Law',
+        sub: 'Contains all state law of India',
+        icon: 'map-outline',
+        iconBg: 'rgba(245, 158, 11, 0.1)',
+        iconColor: '#F59E0B',
+        action: () => Alert.alert('Indian States Law', 'Opening database of Indian State-level acts...')
+      },
+      {
+        title: 'Supreme Court Rules, 2013',
+        sub: 'Supreme Court Rules and Guidelines',
+        icon: 'hammer-outline',
+        iconBg: 'rgba(59, 130, 246, 0.1)',
+        iconColor: '#3B82F6',
+        action: () => Alert.alert('Supreme Court Rules, 2013', 'Official handbook of Supreme Court regulations.')
+      },
+      {
+        title: 'Practice and Procedure of Supreme Court',
+        sub: 'How the Supreme Court Works',
+        icon: 'layers-outline',
+        iconBg: 'rgba(99, 102, 241, 0.1)',
+        iconColor: '#6366F1',
+        action: () => Alert.alert('Practice & Procedure', 'Supreme court practice directives and procedural guidelines.')
+      },
+      {
+        title: 'Law Dictionary',
+        sub: 'Simplified Definitions of Legal Terms and Concepts',
+        icon: 'text-outline',
+        iconBg: 'rgba(239, 68, 68, 0.1)',
+        iconColor: '#EF4444',
+        action: () => setIsDictionaryOpen(true)
+      }
+    ];
+
+    const quickRefs = [
+      { label: 'Rules', icon: 'list-outline', color: '#3B82F6' },
+      { label: 'Regulations', icon: 'shield-outline', color: '#10B981' },
+      { label: 'Notification', icon: 'notifications-outline', color: '#EC4899' },
+      { label: 'Orders', icon: 'document-text-outline', color: '#F59E0B' },
+      { label: 'Ordinance', icon: 'ribbon-outline', color: '#8B5CF6' },
+      { label: 'Circulars', icon: 'refresh-outline', color: '#06B6D4' }
+    ];
+
+    return (
+      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.subScreenHeader}>
+          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>Bare Acts</Text>
+            <Text style={{ fontSize: 10, color: colors.textSecondary }}>On the basis of Indian Law</Text>
+          </View>
+          <TouchableOpacity onPress={() => Alert.alert('Bookmarks', 'No bookmarked Bare Acts yet!')} style={styles.backButton}>
+            <Ionicons name="bookmark" size={22} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.subScreenScrollContent} showsVerticalScrollIndicator={false}>
+          {/* Main List Items */}
+          <View style={{ gap: Spacing.md, marginBottom: Spacing.xl }}>
+            {listItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.courtItemCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={item.action}
+              >
+                <View style={styles.courtItemLeft}>
+                  <View style={[styles.courtIconContainer, { backgroundColor: item.iconBg }]}>
+                    <Ionicons name={item.icon as any} size={18} color={item.iconColor} />
+                  </View>
+                  <View style={{ marginLeft: Spacing.sm, flex: 1 }}>
+                    <Text style={[styles.courtItemText, { color: colors.text, fontWeight: '700' }]}>{item.title}</Text>
+                    <Text style={[styles.utilityLabel, { color: colors.textSecondary, fontSize: FontSize.xxs }]}>{item.sub}</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Quick Reference Section */}
+          <Text style={[styles.quickRefTitle, { color: colors.textSecondary }]}>QUICK REFERENCE</Text>
+          <View style={styles.quickRefGrid}>
+            {quickRefs.map((ref, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[
+                  styles.quickRefButton,
+                  { backgroundColor: colors.surface, borderLeftColor: ref.color, width: cardWidth }
+                ]}
+                onPress={() => Alert.alert(ref.label, `Browse legal ${ref.label.toLowerCase()} mappings...`)}
+              >
+                <Ionicons name={ref.icon as any} size={14} color={ref.color} style={{ marginRight: 6 }} />
+                <Text style={[styles.quickRefText, { color: colors.text }]} numberOfLines={1}>{ref.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Repealed Acts Banner Card at Bottom */}
+          <TouchableOpacity
+            style={[styles.repealedCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={() => Alert.alert('Repealed Acts', 'Browse historical and repealed laws of India.')}
+          >
+            <View style={[styles.courtIconContainer, { backgroundColor: 'rgba(239, 68, 68, 0.1)', marginRight: Spacing.md }]}>
+              <Ionicons name="book" size={20} color="#EF4444" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.courtItemText, { color: colors.text, fontWeight: '700' }]}>Repealed Acts</Text>
+              <Text style={[styles.utilityLabel, { color: colors.textSecondary, fontSize: FontSize.xxs }]}>All Indian Repealed Acts</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Render Sub-Screen: AI Helper Page (Blank page with backward option)
+  const renderAIHelper = () => {
+    let iconName: any = 'bulb-outline';
+    
+    if (aiTitle === 'Judgment AI') {
+      iconName = 'hammer-outline';
+    } else if (aiTitle === 'Legal AI') {
+      iconName = 'analytics-outline';
+    } else if (aiTitle === 'Legal Advice') {
+      iconName = 'chatbubbles-outline';
+    } else {
+      iconName = 'document-text-outline';
+    }
+
+    return (
+      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.subScreenHeader}>
+          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>{aiTitle}</Text>
+          </View>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xxl }}>
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.border,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginBottom: Spacing.lg
+          }}>
+            <Ionicons name={iconName} size={40} color={colors.primary} />
+          </View>
+          
+          <Text style={{
+            fontSize: FontSize.lg,
+            fontWeight: '700',
+            color: colors.text,
+            textAlign: 'center',
+            marginBottom: Spacing.xs
+          }}>
+            {aiSubtitle}
+          </Text>
+
+          <Text style={{
+            fontSize: FontSize.sm,
+            color: colors.textSecondary,
+            textAlign: 'center',
+            lineHeight: 20
+          }}>
+            {aiDescription}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   // Main Render Logic
   if (screenState === 'act-comparison') return renderActComparison();
   if (screenState === 'court-registry') return renderCourtRegistry();
+  if (screenState === 'bare-acts') return renderBareActs();
+  if (screenState === 'coi') return renderCOI();
+  if (screenState === 'ai-helper') return renderAIHelper();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
@@ -441,8 +748,8 @@ export default function HomeScreen() {
           {/* Core Bare Act / Sanhita Comparison Cards (2x2 Grid) */}
           <View style={styles.coreGrid}>
             <TouchableOpacity
-              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => setScreenState('court-registry')}
+              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
+              onPress={() => setScreenState('coi')}
             >
               <View style={styles.coreCardHeader}>
                 <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
@@ -454,8 +761,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => router.push('/(tabs)/converter')}
+              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
+              onPress={() => setScreenState('bare-acts')}
             >
               <View style={styles.coreCardHeader}>
                 <View style={[styles.iconBox, { backgroundColor: colors.errorLight }]}>
@@ -467,7 +774,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
               onPress={() => setScreenState('act-comparison')}
             >
               <View style={styles.coreCardHeader}>
@@ -480,8 +787,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => router.push('/judgments')}
+              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
+              onPress={() => setScreenState('court-registry')}
             >
               <View style={styles.coreCardHeader}>
                 <View style={[styles.iconBox, { backgroundColor: colors.successLight }]}>
@@ -493,26 +800,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Daily Case Law Banner */}
-          <Card style={[styles.dailyBanner, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.bannerBadge}>
-              <Text style={styles.bannerBadgeText}>DAILY CASE LAW</Text>
-            </View>
-            <View style={styles.bannerRow}>
-              <View style={styles.bannerTextCol}>
-                <Text style={[styles.bannerTitle, { color: colors.text }]}>Article, Judgment & Orders</Text>
-                <Text style={[styles.bannerSub, { color: colors.textSecondary }]}>Supreme Court & All High Courts</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.bannerReadButton}
-                onPress={() => router.push('/judgments')}
-              >
-                <Text style={styles.bannerReadButtonText}>READ</Text>
-                <Ionicons name="arrow-forward" size={14} color="#000000" />
-              </TouchableOpacity>
-            </View>
-          </Card>
-
           {/* Our Legal AI Tools Section */}
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             <Ionicons name="bulb-outline" size={18} color={colors.primary} /> Our Legal AI Tools
@@ -520,7 +807,12 @@ export default function HomeScreen() {
           <View style={styles.aiToolsRow}>
             <TouchableOpacity
               style={[styles.aiToolCard, { backgroundColor: colors.surface }]}
-              onPress={() => router.push({ pathname: '/(tabs)/assistant', params: { preset: 'judgment' } })}
+              onPress={() => {
+                setAiTitle('Judgment AI');
+                setAiSubtitle('AI Precedent & Judgment Search');
+                setAiDescription('Search landmark Indian judicial precedents by citation, court name, or keywords. This module will integrate with RAG search in the next phase.');
+                setScreenState('ai-helper');
+              }}
             >
               <View style={[styles.aiIconWrapper, { backgroundColor: 'rgba(16,185,129,0.1)' }]}>
                 <Ionicons name="hammer-outline" size={24} color="#10B981" />
@@ -530,7 +822,12 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={[styles.aiToolCard, { backgroundColor: colors.surface }]}
-              onPress={() => router.push('/(tabs)/assistant')}
+              onPress={() => {
+                setAiTitle('Legal AI');
+                setAiSubtitle('AI Code Comparison & Statutes Assistant');
+                setAiDescription('Bidirectional mapping and comparative analysis between old acts and new Sanhitas. This module will support dynamic LLM reasoning.');
+                setScreenState('ai-helper');
+              }}
             >
               <View style={[styles.aiIconWrapper, { backgroundColor: 'rgba(59,130,246,0.1)' }]}>
                 <Ionicons name="analytics" size={24} color="#3B82F6" />
@@ -555,16 +852,23 @@ export default function HomeScreen() {
           </Text>
           <View style={styles.utilitiesGrid}>
             {[
-              { label: 'Legal advice', icon: 'chatbubbles-outline', route: '/(tabs)/assistant' },
+              {
+                label: 'Legal advice',
+                icon: 'chatbubbles-outline',
+                action: () => {
+                  setAiTitle('Legal Advice');
+                  setAiSubtitle('Legal Query & Advice Assistant');
+                  setAiDescription('Receive guidance on legal issues, FIR drafting, and relevant sections. This module will use LLM-based chat interactions.');
+                  setScreenState('ai-helper');
+                }
+              },
               { label: 'Drafting', icon: 'create-outline', route: '/(tabs)/fir' },
-              { label: 'Q & A', icon: 'help-circle-outline', route: '/(tabs)/assistant' },
               { label: 'Daily Poll', icon: 'stats-chart-outline', action: () => Alert.alert('Poll', 'Today\'s Poll: Will the new BNS code improve speed of investigation? Vote in dashboard.') },
               { label: 'Play Quiz', icon: 'ribbon-outline', action: () => Alert.alert('Legal Quiz', 'Start our 5-minute legal quiz on new IPC/BNS mappings!') },
-              { label: 'Post Maker', icon: 'image-outline', action: () => Alert.alert('Post Maker', 'Generate awareness banners about new laws directly.') },
             ].map((item, idx) => (
               <TouchableOpacity
                 key={idx}
-                style={[styles.utilityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.utilityCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
                 onPress={() => {
                   if (item.route) router.push(item.route as any);
                   else if (item.action) item.action();
@@ -593,7 +897,7 @@ export default function HomeScreen() {
           {/* Advocates Grid */}
           <View style={styles.advocatesGrid}>
             {mockLawyers.map((lawyer) => (
-              <Card key={lawyer.id} style={[styles.advocateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Card key={lawyer.id} style={[styles.advocateCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}>
                 <View style={styles.advocateProfileWrapper}>
                   <View style={[styles.advocatePhotoContainer, { backgroundColor: colors.primaryLight }]}>
                     <Text style={[styles.photoText, { color: colors.primary }]}>
@@ -697,16 +1001,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Upgrade To Pro Member Box */}
-              <View style={[styles.proCard, { backgroundColor: isDark ? '#1F2937' : '#EFF6FF' }]}>
-                <View style={styles.proCardTop}>
-                  <Ionicons name="ribbon-outline" size={18} color="#5C93FC" style={{ marginRight: 6 }} />
-                  <Text style={[styles.proTextTitle, { color: isDark ? '#E5E7EB' : '#1A56DB' }]}>UPGRADE TO PRO</Text>
-                </View>
-                <TouchableOpacity style={styles.membershipButton}>
-                  <Text style={styles.membershipButtonText}>★ GET MEMBERSHIP</Text>
-                </TouchableOpacity>
-              </View>
+
             </View>
 
             {/* Drawer Options Scroll */}
@@ -758,7 +1053,6 @@ export default function HomeScreen() {
               {[
                 { title: 'Contact Us', icon: 'headset-outline', action: () => Alert.alert('Support', 'Email us at support@ipc.ai') },
                 { title: 'AboutUs', icon: 'information-circle-outline', action: () => Alert.alert('About', 'IPC.AI is an AI-powered legal platform for Indian Police, Public and Lawyers.') },
-                { title: 'Share Law4u App', icon: 'share-social-outline', action: () => Alert.alert('Share', 'Share IPC.AI app with colleagues.') },
                 { title: 'Rate our Service', icon: 'star-outline', action: () => Alert.alert('Rate', 'Thanks for supporting IPC.AI!') },
                 { title: 'Privacy Policy', icon: 'shield-checkmark-outline', action: () => Linking.openURL('https://ipc.ai/privacy') },
               ].map((item, idx) => (
@@ -1550,5 +1844,40 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: FontSize.sm,
+  },
+
+  // Quick Reference sub-screen styles
+  quickRefTitle: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+    letterSpacing: 0.5,
+  },
+  quickRefGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  quickRefButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.sm,
+    borderLeftWidth: 3,
+  },
+  quickRefText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  repealedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.xl,
   },
 });

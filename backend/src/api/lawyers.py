@@ -51,6 +51,9 @@ async def list_lawyers(
             or_(
                 Lawyer.name.ilike(search),
                 Lawyer.firm_name.ilike(search),
+                Lawyer.city.ilike(search),
+                cast(Lawyer.specialization, String).ilike(search),
+                cast(Lawyer.practicing_courts, String).ilike(search),
             )
         )
     # Use LIKE on the JSON column (works with both SQLite and PostgreSQL)

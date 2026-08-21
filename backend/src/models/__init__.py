@@ -6,3 +6,5 @@ from .judgment import Judgment, JudgmentChunk
 from .lawyer import Lawyer
 from .history import SearchHistory
 from .statute import StatuteChunk
+from .other_law import OtherLawStatute
+

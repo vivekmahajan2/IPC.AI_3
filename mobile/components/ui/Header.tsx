@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
-import { Colors, Spacing, FontSize, Shadow } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { Spacing, FontSize, Shadow } from '../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
@@ -20,17 +21,19 @@ export default function Header({
   rightAction,
   style,
 }: HeaderProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }, style]}>
       <View style={styles.leftSection}>
         {showBack && (
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
         )}
         <View>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+          {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
         </View>
       </View>
       {rightAction && <View style={styles.rightSection}>{rightAction}</View>}
@@ -46,7 +49,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     paddingTop: Spacing.lg,
-    backgroundColor: Colors.surface,
     ...Shadow.sm,
   },
   leftSection: {
@@ -61,11 +63,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.xl,
     fontWeight: '700',
-    color: Colors.text,
   },
   subtitle: {
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   rightSection: {
@@ -73,3 +73,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+

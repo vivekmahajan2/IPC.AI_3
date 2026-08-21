@@ -18,11 +18,13 @@ import Header from '../components/ui/Header';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
+import { useTheme } from '../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../constants/theme';
 import { Judgment } from '../types';
 
 export default function JudgmentsScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
 
@@ -58,7 +60,7 @@ export default function JudgmentsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <Header
         title="Judgments"
         subtitle="Search landmark judgments"
@@ -66,22 +68,22 @@ export default function JudgmentsScreen() {
         onBack={() => router.back()}
       />
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Input
           placeholder="Search by case title, section, keyword..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmitEditing={handleSearch}
           returnKeyType="search"
-          icon={<Ionicons name="search" size={18} color={Colors.textLight} />}
+          icon={<Ionicons name="search" size={18} color={colors.textLight} />}
           containerStyle={styles.searchInput}
         />
         <TouchableOpacity
-          style={styles.searchButton}
+          style={[styles.searchButton, { backgroundColor: colors.primary }]}
           onPress={handleSearch}
           activeOpacity={0.7}
         >
-          <Ionicons name="search" size={20} color={Colors.textOnPrimary} />
+          <Ionicons name="search" size={20} color={colors.textOnPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -91,15 +93,15 @@ export default function JudgmentsScreen() {
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Searching judgments...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Searching judgments...</Text>
           </View>
         )}
 
         {isError && (
           <Card style={styles.errorCard}>
-            <Ionicons name="warning-outline" size={24} color={Colors.error} />
-            <Text style={styles.errorText}>
+            <Ionicons name="warning-outline" size={24} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.error }]}>
               Failed to search judgments. Please check your connection and try again.
             </Text>
           </Card>
@@ -133,47 +135,47 @@ export default function JudgmentsScreen() {
                 }
               }}
             >
-              <Card style={styles.judgmentCard}>
+              <Card style={[styles.judgmentCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.judgmentHeader}>
-                  <View style={styles.judgmentIconContainer}>
-                    <Ionicons name="book" size={18} color={Colors.primary} />
+                  <View style={[styles.judgmentIconContainer, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name="book" size={18} color={colors.primary} />
                   </View>
                   <View style={styles.judgmentMeta}>
                     {judgment.citation && (
-                      <Text style={styles.citation}>{judgment.citation}</Text>
+                      <Text style={[styles.citation, { color: colors.primary }]}>{judgment.citation}</Text>
                     )}
                     {judgment.judgment_date && (
-                      <Text style={styles.judgmentDate}>
+                      <Text style={[styles.judgmentDate, { color: colors.textLight }]}>
                         {formatDate(judgment.judgment_date)}
                       </Text>
                     )}
                   </View>
                 </View>
 
-                <Text style={styles.caseTitle}>{judgment.case_title}</Text>
+                <Text style={[styles.caseTitle, { color: colors.text }]}>{judgment.case_title}</Text>
 
                 <View style={styles.courtRow}>
-                  <Ionicons name="business-outline" size={14} color={Colors.textSecondary} />
-                  <Text style={styles.courtName}>{judgment.court_name}</Text>
+                  <Ionicons name="business-outline" size={14} color={colors.textSecondary} />
+                  <Text style={[styles.courtName, { color: colors.textSecondary }]}>{judgment.court_name}</Text>
                 </View>
 
                 {judgment.bench && (
                   <View style={styles.courtRow}>
-                    <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-                    <Text style={styles.benchText}>{judgment.bench}</Text>
+                    <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
+                    <Text style={[styles.benchText, { color: colors.textSecondary }]}>{judgment.bench}</Text>
                   </View>
                 )}
 
                 {judgment.summary && (
-                  <Text style={styles.summary} numberOfLines={3}>
+                  <Text style={[styles.summary, { color: colors.textSecondary }]} numberOfLines={3}>
                     {judgment.summary}
                   </Text>
                 )}
 
                 {judgment.full_text_url && (
                   <View style={styles.linkRow}>
-                    <Ionicons name="open-outline" size={14} color={Colors.primary} />
-                    <Text style={styles.linkText}>View Full Judgment</Text>
+                    <Ionicons name="open-outline" size={14} color={colors.primary} />
+                    <Text style={[styles.linkText, { color: colors.primary }]}>View Full Judgment</Text>
                   </View>
                 )}
               </Card>

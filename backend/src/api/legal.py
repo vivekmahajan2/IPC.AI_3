@@ -81,6 +81,7 @@ async def legal_query(
 
     # Search judgments for keywords
     judgments = []
+    other_statutes = []
     keywords = [word for word in query_str.split() if len(word) > 3]
     if keywords:
         j_conditions = []
@@ -93,6 +94,20 @@ async def legal_query(
         judgment_query = select(Judgment).where(or_(*j_conditions)).limit(3)
         result = await db.execute(judgment_query)
         judgments = result.scalars().all()
+
+        # Search Other Law Statutes for keywords
+        from ..models.other_law import OtherLawStatute
+        ol_conditions = []
+        for kw in keywords:
+            search_term = f"%{kw}%"
+            ol_conditions.append(OtherLawStatute.act_name.ilike(search_term))
+            ol_conditions.append(OtherLawStatute.section.ilike(search_term))
+            ol_conditions.append(OtherLawStatute.title.ilike(search_term))
+            ol_conditions.append(OtherLawStatute.description.ilike(search_term))
+        
+        ol_query = select(OtherLawStatute).where(or_(*ol_conditions)).limit(5)
+        result = await db.execute(ol_query)
+        other_statutes = result.scalars().all()
 
     sources = []
     answer = ""
@@ -135,6 +150,22 @@ async def legal_query(
                     text_snippet=j.summary
                 )
             )
+
+    if other_statutes:
+        if answer:
+            answer += "\n"
+        answer += "Relevant provisions from other law categories:\n\n"
+        for s in other_statutes:
+            answer += f"- **{s.act_name} {s.section}** ({s.title}): {s.description[:250]}...\n"
+            sources.append(
+                SourceReference(
+                    act=s.act_name,
+                    section=s.section,
+                    title=s.title,
+                    text_snippet=s.description[:200]
+                )
+            )
+
 
     # Contextual info on Constitution of India (COI)
     if "constitution" in query_str or "coi" in query_str or "part" in query_str or "preamble" in query_str:

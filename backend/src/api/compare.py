@@ -51,17 +51,18 @@ async def compare_sections(
     """
     query = select(SectionMapping)
 
-    if section and act:
-        if direction == "old_to_new":
-            query = query.where(
-                SectionMapping.old_act == act.upper(),
-                SectionMapping.old_section == section,
-            )
+    if act:
+        act_upper = act.upper()
+        if act_upper in ["BNS", "BNSS", "BSA"]:
+            query = query.where(SectionMapping.new_act == act_upper)
         else:
-            query = query.where(
-                SectionMapping.new_act == act.upper(),
-                SectionMapping.new_section == section,
-            )
+            query = query.where(SectionMapping.old_act == act_upper)
+
+    if section:
+        if direction == "old_to_new":
+            query = query.where(SectionMapping.old_section == section)
+        else:
+            query = query.where(SectionMapping.new_section == section)
     elif q:
         search = f"%{q}%"
         query = query.where(
@@ -75,7 +76,9 @@ async def compare_sections(
             )
         )
 
-    query = query.limit(50)
+    # If loading all sections, let's allow a larger limit (e.g. 1000) so the user can scroll through the acts
+    limit_val = 1000 if (act and not section and not q) else 50
+    query = query.limit(limit_val)
     result = await db.execute(query)
     mappings = result.scalars().all()
 

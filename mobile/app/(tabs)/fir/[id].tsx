@@ -17,6 +17,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import StatusBadge from '../../../components/ui/StatusBadge';
+import { useTheme } from '../../../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
 import { FIRDraft } from '../../../types';
 
@@ -25,6 +26,7 @@ export default function FIRDetailScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
 
   const { data: fir, isLoading } = useQuery({
     queryKey: ['fir', id],
@@ -76,9 +78,9 @@ export default function FIRDetailScreen() {
 
   if (isLoading || !fir) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading FIR details...</Text>
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading FIR details...</Text>
         </View>
       </SafeAreaView>
     );
@@ -91,33 +93,33 @@ export default function FIRDetailScreen() {
     if (!value) return null;
     return (
       <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[styles.detailValue, { color: colors.text }]}>{value}</Text>
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>FIR Details</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>FIR Details</Text>
         <StatusBadge status={fir.status} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Title & FIR Number */}
         <Card style={styles.section}>
-          <Text style={styles.firTitle}>{fir.title}</Text>
+          <Text style={[styles.firTitle, { color: colors.text }]}>{fir.title}</Text>
           {fir.fir_number && (
-            <Text style={styles.firNumber}>{fir.fir_number}</Text>
+            <Text style={[styles.firNumber, { color: colors.textSecondary }]}>{fir.fir_number}</Text>
           )}
           <View style={styles.metaRow}>
-            <Ionicons name="calendar-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.metaText}>
+            <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.metaText, { color: colors.textSecondary }]}>
               Created: {new Date(fir.created_at).toLocaleDateString('en-IN')}
             </Text>
           </View>
@@ -126,7 +128,7 @@ export default function FIRDetailScreen() {
         {/* Complainant Details */}
         {(details.complainant_name || details.complainant_address) && (
           <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Complainant</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Complainant</Text>
             {renderDetailRow('Name', details.complainant_name)}
             {renderDetailRow("Father's Name", details.complainant_father_name)}
             {renderDetailRow('Address', details.complainant_address)}
@@ -136,15 +138,15 @@ export default function FIRDetailScreen() {
 
         {/* Incident Details */}
         <Card style={styles.section}>
-          <Text style={styles.sectionTitle}>Incident Details</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Incident Details</Text>
           {renderDetailRow('Date', details.incident_date)}
           {renderDetailRow('Time', details.incident_time)}
           {renderDetailRow('Place', details.incident_place)}
           {renderDetailRow('District', details.district)}
           {details.description && (
             <View style={styles.descriptionBlock}>
-              <Text style={styles.detailLabel}>Description</Text>
-              <Text style={styles.descriptionText}>{details.description}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Description</Text>
+              <Text style={[styles.descriptionText, { color: colors.text }]}>{details.description}</Text>
             </View>
           )}
         </Card>
@@ -152,7 +154,7 @@ export default function FIRDetailScreen() {
         {/* Accused */}
         {(details.accused_name || details.accused_description) && (
           <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Accused</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Accused</Text>
             {renderDetailRow('Name', details.accused_name)}
             {renderDetailRow('Description', details.accused_description)}
           </Card>
@@ -161,11 +163,11 @@ export default function FIRDetailScreen() {
         {/* Sections Applied */}
         {fir.sections_applied && fir.sections_applied.length > 0 && (
           <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Sections Applied</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Sections Applied</Text>
             <View style={styles.sectionsRow}>
               {fir.sections_applied.map((s, i) => (
-                <View key={i} style={styles.sectionChip}>
-                  <Text style={styles.sectionChipText}>{s}</Text>
+                <View key={i} style={[styles.sectionChip, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={[styles.sectionChipText, { color: colors.primary }]}>{s}</Text>
                 </View>
               ))}
             </View>
@@ -175,8 +177,8 @@ export default function FIRDetailScreen() {
         {/* Review Comments */}
         {fir.review_comments && (
           <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Review Comments</Text>
-            <Text style={styles.reviewComments}>{fir.review_comments}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Review Comments</Text>
+            <Text style={[styles.reviewComments, { color: colors.textSecondary }]}>{fir.review_comments}</Text>
           </Card>
         )}
 
@@ -188,7 +190,7 @@ export default function FIRDetailScreen() {
               onPress={() => submitMutation.mutate()}
               loading={submitMutation.isPending}
               fullWidth
-              icon={<Ionicons name="send-outline" size={18} color={Colors.textOnPrimary} />}
+              icon={<Ionicons name="send-outline" size={18} color={colors.textOnPrimary} />}
             />
           )}
 
@@ -200,7 +202,7 @@ export default function FIRDetailScreen() {
                 onPress={() => approveMutation.mutate()}
                 loading={approveMutation.isPending}
                 style={styles.reviewButton}
-                icon={<Ionicons name="checkmark-circle-outline" size={18} color={Colors.textOnPrimary} />}
+                icon={<Ionicons name="checkmark-circle-outline" size={18} color={colors.textOnPrimary} />}
               />
               <Button
                 title="Reject"
@@ -208,7 +210,7 @@ export default function FIRDetailScreen() {
                 onPress={() => rejectMutation.mutate()}
                 loading={rejectMutation.isPending}
                 style={styles.reviewButton}
-                icon={<Ionicons name="close-circle-outline" size={18} color={Colors.textOnPrimary} />}
+                icon={<Ionicons name="close-circle-outline" size={18} color={colors.textOnPrimary} />}
               />
             </View>
           )}

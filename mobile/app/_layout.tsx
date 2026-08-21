@@ -58,6 +58,8 @@ function AuthGate() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="judgments" options={{ headerShown: false }} />
         <Stack.Screen name="lawyers" options={{ headerShown: false }} />
+        <Stack.Screen name="other-law" options={{ headerShown: false }} />
+        <Stack.Screen name="bare-act" options={{ headerShown: false }} />
         <Stack.Screen name="history" options={{ title: 'History' }} />
         <Stack.Screen name="profile" options={{ title: 'Profile' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />

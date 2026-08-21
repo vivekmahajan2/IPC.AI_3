@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../../hooks/useAuth';
-import Card from '../../components/ui/Card';
+import { useTheme } from '../../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../../constants/theme';
 
 interface MenuItem {
@@ -38,6 +38,13 @@ const menuItems: MenuItem[] = [
     route: '/lawyers',
   },
   {
+    icon: 'briefcase-outline',
+    title: 'Other Law',
+    subtitle: 'Civil, Family, Cyber, State Laws...',
+    color: '#8B5CF6',
+    route: '/other-law',
+  },
+  {
     icon: 'time-outline',
     title: 'History',
     subtitle: 'View your search history',
@@ -53,34 +60,36 @@ const menuItems: MenuItem[] = [
   },
 ];
 
+
 export default function MoreScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Info */}
-        <View style={styles.userCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+        <View style={[styles.userCard, { backgroundColor: colors.surface }]}>
+          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+            <Text style={[styles.avatarText, { color: colors.primary }]}>
               {(user?.full_name || 'U').charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.full_name || 'User'}</Text>
-            <Text style={styles.userRole}>
+            <Text style={[styles.userName, { color: colors.text }]}>{user?.full_name || 'User'}</Text>
+            <Text style={[styles.userRole, { color: colors.textSecondary }]}>
               {(user?.role || 'user').charAt(0).toUpperCase() + (user?.role || 'user').slice(1)}
             </Text>
           </View>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuSection}>
+        <View style={[styles.menuSection, { backgroundColor: colors.surface }]}>
           {menuItems.map((item) => (
             <TouchableOpacity
               key={item.title}
-              style={styles.menuItem}
+              style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={() => router.push(item.route as any)}
               activeOpacity={0.7}
             >
@@ -88,27 +97,27 @@ export default function MoreScreen() {
                 <Ionicons name={item.icon} size={22} color={item.color} />
               </View>
               <View style={styles.menuTextContainer}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>{item.title}</Text>
+                <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+              <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Logout */}
         <TouchableOpacity
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: colors.errorLight }]}
           onPress={() => {
             logout();
           }}
         >
-          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Ionicons name="log-out-outline" size={20} color={colors.error} />
+          <Text style={[styles.logoutText, { color: colors.error }]}>Sign Out</Text>
         </TouchableOpacity>
 
         {/* Version */}
-        <Text style={styles.version}>IPC.ai v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.textLight }]}>IPC.ai v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );

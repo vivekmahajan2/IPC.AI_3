@@ -17,23 +17,13 @@ import api from '../lib/api';
 import Header from '../components/ui/Header';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
+import { useTheme } from '../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../constants/theme';
 import { SearchHistoryItem } from '../types';
 
-const MODULE_CONFIG: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }> = {
-  assistant: { icon: 'chatbubble-ellipses', color: Colors.secondary, label: 'AI Assistant' },
-  converter: { icon: 'swap-horizontal', color: '#7C3AED', label: 'Converter' },
-  judgments: { icon: 'book', color: Colors.primary, label: 'Judgments' },
-  fir: { icon: 'document-text', color: Colors.success, label: 'FIR' },
-  lawyers: { icon: 'people', color: Colors.warning, label: 'Lawyers' },
-};
-
-const getModuleConfig = (module: string) => {
-  return MODULE_CONFIG[module] || { icon: 'search' as const, color: Colors.textSecondary, label: module };
-};
-
 export default function HistoryScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const { data: history, isLoading, isError, refetch } = useQuery({
     queryKey: ['search-history'],
@@ -42,6 +32,23 @@ export default function HistoryScreen() {
       return res.data as SearchHistoryItem[];
     },
   });
+
+  const getModuleConfig = (module: string) => {
+    switch (module) {
+      case 'search':
+        return { icon: 'search' as const, color: colors.primary, label: 'Search' };
+      case 'converter':
+        return { icon: 'swap-horizontal' as const, color: '#7C3AED', label: 'Converter' };
+      case 'judgments':
+        return { icon: 'book' as const, color: colors.primary, label: 'Judgments' };
+      case 'fir':
+        return { icon: 'document-text' as const, color: colors.success, label: 'FIR' };
+      case 'lawyers':
+        return { icon: 'people' as const, color: colors.warning, label: 'Lawyers' };
+      default:
+        return { icon: 'search' as const, color: colors.textSecondary, label: module };
+    }
+  };
 
   const formatTime = (dateStr: string) => {
     try {
@@ -96,7 +103,7 @@ export default function HistoryScreen() {
   }, [history]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <Header
         title="History"
         subtitle="Your search history"
@@ -113,15 +120,15 @@ export default function HistoryScreen() {
       >
         {isLoading && !history && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Loading history...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading history...</Text>
           </View>
         )}
 
         {isError && (
           <Card style={styles.errorCard}>
-            <Ionicons name="warning-outline" size={24} color={Colors.error} />
-            <Text style={styles.errorText}>
+            <Ionicons name="warning-outline" size={24} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.error }]}>
               Failed to load history. Pull down to retry.
             </Text>
           </Card>
@@ -137,7 +144,7 @@ export default function HistoryScreen() {
 
         {groupedHistory.map((group) => (
           <View key={group.date} style={styles.dateGroup}>
-            <Text style={styles.dateLabel}>{group.date}</Text>
+            <Text style={[styles.dateLabel, { color: colors.textSecondary }]}>{group.date}</Text>
 
             <Card style={styles.groupCard}>
               {group.items.map((item, idx) => {
@@ -149,7 +156,7 @@ export default function HistoryScreen() {
                     key={item.id}
                     style={[
                       styles.historyItem,
-                      !isLast && styles.historyItemBorder,
+                      !isLast && [styles.historyItemBorder, { borderBottomColor: colors.border }],
                     ]}
                   >
                     <View style={[styles.moduleIcon, { backgroundColor: config.color + '15' }]}>
@@ -158,16 +165,16 @@ export default function HistoryScreen() {
 
                     <View style={styles.historyContent}>
                       <View style={styles.historyTopRow}>
-                        <Text style={styles.moduleLabel}>{config.label}</Text>
-                        <Text style={styles.timeText}>
+                        <Text style={[styles.moduleLabel, { color: colors.text }]}>{config.label}</Text>
+                        <Text style={[styles.timeText, { color: colors.textLight }]}>
                           {formatTime(item.created_at)}
                         </Text>
                       </View>
-                      <Text style={styles.queryText} numberOfLines={2}>
+                      <Text style={[styles.queryText, { color: colors.text }]} numberOfLines={2}>
                         {item.query}
                       </Text>
                       {item.response_summary && (
-                        <Text style={styles.summaryText} numberOfLines={1}>
+                        <Text style={[styles.summaryText, { color: colors.textSecondary }]} numberOfLines={1}>
                           {item.response_summary}
                         </Text>
                       )}

@@ -17,11 +17,13 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { SectionMapping } from '../../types';
 
 type Direction = 'old_to_new' | 'new_to_old';
 
 export default function ConverterScreen() {
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [direction, setDirection] = useState<Direction>('old_to_new');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -63,83 +65,83 @@ export default function ConverterScreen() {
       : { act: item.old_act, section: item.old_section, title: item.old_title };
 
     return (
-      <Card style={styles.mappingCard}>
+      <Card style={[styles.mappingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         {/* From */}
         <View style={styles.mappingSection}>
           <Badge
             label={from.act}
-            color={Colors.secondary}
-            backgroundColor={Colors.secondaryLight}
+            color={colors.secondary}
+            backgroundColor={colors.secondaryLight}
           />
-          <Text style={styles.sectionNumber}>Section {from.section}</Text>
-          {from.title && <Text style={styles.sectionTitle}>{from.title}</Text>}
+          <Text style={[styles.sectionNumber, { color: colors.text }]}>Section {from.section}</Text>
+          {from.title && <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{from.title}</Text>}
         </View>
 
         {/* Arrow */}
         <View style={styles.arrowContainer}>
-          <View style={styles.arrowLine} />
-          <Ionicons name="arrow-down" size={18} color={Colors.primary} />
-          <View style={styles.arrowLine} />
+          <View style={[styles.arrowLine, { backgroundColor: colors.border }]} />
+          <Ionicons name="arrow-down" size={18} color={colors.primary} />
+          <View style={[styles.arrowLine, { backgroundColor: colors.border }]} />
         </View>
 
         {/* To */}
         <View style={styles.mappingSection}>
           <Badge
             label={to.act}
-            color={Colors.primary}
-            backgroundColor={Colors.primaryLight}
+            color={colors.primary}
+            backgroundColor={colors.primaryLight}
           />
-          <Text style={styles.sectionNumber}>Section {to.section}</Text>
-          {to.title && <Text style={styles.sectionTitle}>{to.title}</Text>}
+          <Text style={[styles.sectionNumber, { color: colors.text }]}>Section {to.section}</Text>
+          {to.title && <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{to.title}</Text>}
         </View>
 
         {/* Notes */}
         {item.mapping_notes && (
-          <View style={styles.notesContainer}>
-            <Ionicons name="information-circle-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.notesText}>{item.mapping_notes}</Text>
+          <View style={[styles.notesContainer, { backgroundColor: colors.background }]}>
+            <Ionicons name="information-circle-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.notesText, { color: colors.textSecondary }]}>{item.mapping_notes}</Text>
           </View>
         )}
 
         {item.is_identical && (
-          <Badge label="Identical" color={Colors.success} backgroundColor={Colors.successLight} style={styles.identicalBadge} />
+          <Badge label="Identical" color={colors.success} backgroundColor={colors.successLight} style={styles.identicalBadge} />
         )}
       </Card>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sanhita Converter</Text>
-        <Text style={styles.headerSubtitle}>IPC ↔ BNS · CrPC ↔ BNSS · IEA ↔ BSA</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Sanhita Converter</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>IPC ↔ BNS · CrPC ↔ BNSS · IEA ↔ BSA</Text>
       </View>
 
       {/* Direction Toggle */}
-      <TouchableOpacity style={styles.toggleContainer} onPress={toggleDirection} activeOpacity={0.7}>
+      <TouchableOpacity style={[styles.toggleContainer, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={toggleDirection} activeOpacity={0.7}>
         <View style={styles.toggleSide}>
-          <Text style={styles.toggleLabel}>
+          <Text style={[styles.toggleLabel, { color: colors.text }]}>
             {direction === 'old_to_new' ? 'IPC / CrPC / IEA' : 'BNS / BNSS / BSA'}
           </Text>
         </View>
-        <View style={styles.toggleButton}>
-          <Ionicons name="swap-horizontal" size={20} color={Colors.textOnPrimary} />
+        <View style={[styles.toggleButton, { backgroundColor: colors.primary }]}>
+          <Ionicons name="swap-horizontal" size={20} color={colors.textOnPrimary} />
         </View>
         <View style={styles.toggleSide}>
-          <Text style={styles.toggleLabel}>
+          <Text style={[styles.toggleLabel, { color: colors.text }]}>
             {direction === 'old_to_new' ? 'BNS / BNSS / BSA' : 'IPC / CrPC / IEA'}
           </Text>
         </View>
       </TouchableOpacity>
 
       {/* Search */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Input
           placeholder="Search by section number or keyword..."
           value={searchQuery}
           onChangeText={handleSearch}
-          icon={<Ionicons name="search-outline" size={20} color={Colors.textLight} />}
+          icon={<Ionicons name="search-outline" size={20} color={colors.textLight} />}
           containerStyle={{ marginBottom: 0 }}
         />
       </View>
@@ -147,7 +149,7 @@ export default function ConverterScreen() {
       {/* Results */}
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList

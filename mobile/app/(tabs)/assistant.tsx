@@ -15,16 +15,18 @@ import { Ionicons } from '@expo/vector-icons';
 
 import api from '../../lib/api';
 import ChatBubble from '../../components/ChatBubble';
+import { useTheme } from '../../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../../constants/theme';
 import { ChatMessage, LegalQueryResponse } from '../../types';
 
 export default function AssistantScreen() {
+  const { colors } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Hello! I\'m your AI legal assistant. I can help you with questions about Indian criminal law — IPC, BNS, CrPC, BNSS, IEA, and BSA. How can I assist you today?',
+        'Hello! I am your AI Legal Assistant. Ask me anything about Indian Law, bare acts, section comparisons, or judicial precedents.',
       timestamp: new Date(),
     },
   ]);
@@ -81,16 +83,16 @@ export default function AssistantScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerLeft}>
-          <View style={styles.aiIcon}>
-            <Ionicons name="sparkles" size={20} color={Colors.primary} />
+          <View style={[styles.aiIcon, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="sparkles" size={20} color={colors.primary} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>AI Legal Assistant</Text>
-            <Text style={styles.headerSubtitle}>Powered by Indian Legal AI</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>AI Legal Assistant</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Powered by Indian Legal AI</Text>
           </View>
         </View>
       </View>
@@ -106,17 +108,17 @@ export default function AssistantScreen() {
         ListHeaderComponent={
           messages.length <= 1 ? (
             <View style={styles.suggestionsContainer}>
-              <Text style={styles.suggestionsTitle}>Try asking:</Text>
+              <Text style={[styles.suggestionsTitle, { color: colors.textSecondary }]}>Try asking:</Text>
               {suggestedQuestions.map((q) => (
                 <TouchableOpacity
                   key={q}
-                  style={styles.suggestionChip}
+                  style={[styles.suggestionChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => {
                     setInputText(q);
                   }}
                 >
-                  <Ionicons name="chatbubble-outline" size={14} color={Colors.primary} />
-                  <Text style={styles.suggestionText}>{q}</Text>
+                  <Ionicons name="chatbubble-outline" size={14} color={colors.primary} />
+                  <Text style={[styles.suggestionText, { color: colors.text }]}>{q}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -127,8 +129,8 @@ export default function AssistantScreen() {
       {/* Loading indicator */}
       {isLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={Colors.primary} />
-          <Text style={styles.loadingText}>Thinking...</Text>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Thinking...</Text>
         </View>
       )}
 
@@ -136,11 +138,11 @@ export default function AssistantScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
             placeholder="Ask a legal question..."
-            placeholderTextColor={Colors.textLight}
+            placeholderTextColor={colors.textLight}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -149,11 +151,11 @@ export default function AssistantScreen() {
             blurOnSubmit={false}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+            style={[styles.sendButton, { backgroundColor: colors.primary }, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
             onPress={sendMessage}
             disabled={!inputText.trim() || isLoading}
           >
-            <Ionicons name="send" size={20} color={Colors.textOnPrimary} />
+            <Ionicons name="send" size={20} color={colors.textOnPrimary} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -18,11 +18,13 @@ import Header from '../components/ui/Header';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
+import { useTheme } from '../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../constants/theme';
 import { Lawyer } from '../types';
 
 export default function LawyersScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -43,7 +45,7 @@ export default function LawyersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <Header
         title="Lawyer Directory"
         subtitle="Find legal professionals"
@@ -51,13 +53,13 @@ export default function LawyersScreen() {
         onBack={() => router.back()}
       />
 
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Input
           placeholder="Search by name, specialization, city..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
-          icon={<Ionicons name="search" size={18} color={Colors.textLight} />}
+          icon={<Ionicons name="search" size={18} color={colors.textLight} />}
           containerStyle={styles.searchInput}
         />
       </View>
@@ -68,15 +70,15 @@ export default function LawyersScreen() {
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Loading lawyers...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading lawyers...</Text>
           </View>
         )}
 
         {isError && (
           <Card style={styles.errorCard}>
-            <Ionicons name="warning-outline" size={24} color={Colors.error} />
-            <Text style={styles.errorText}>
+            <Ionicons name="warning-outline" size={24} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.error }]}>
               Failed to load lawyer directory. Please try again.
             </Text>
           </Card>
@@ -104,34 +106,34 @@ export default function LawyersScreen() {
                 activeOpacity={0.8}
                 onPress={() => toggleExpand(lawyer.id)}
               >
-                <Card style={styles.lawyerCard}>
+                <Card style={[styles.lawyerCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   {/* Main info row */}
                   <View style={styles.lawyerHeader}>
-                    <View style={styles.avatarContainer}>
-                      <Text style={styles.avatarText}>
+                    <View style={[styles.avatarContainer, { backgroundColor: colors.primaryLight }]}>
+                      <Text style={[styles.avatarText, { color: colors.primary }]}>
                         {lawyer.name.charAt(0).toUpperCase()}
                       </Text>
                     </View>
                     <View style={styles.lawyerInfo}>
                       <View style={styles.nameRow}>
-                        <Text style={styles.lawyerName} numberOfLines={1}>
+                        <Text style={[styles.lawyerName, { color: colors.text }]} numberOfLines={1}>
                           {lawyer.name}
                         </Text>
                         {lawyer.is_verified && (
                           <Ionicons
                             name="checkmark-circle"
                             size={16}
-                            color={Colors.success}
+                            color={colors.success}
                           />
                         )}
                       </View>
                       {lawyer.firm_name && (
-                        <Text style={styles.firmName} numberOfLines={1}>
+                        <Text style={[styles.firmName, { color: colors.textSecondary }]} numberOfLines={1}>
                           {lawyer.firm_name}
                         </Text>
                       )}
                       {lawyer.years_of_exp != null && (
-                        <Text style={styles.experience}>
+                        <Text style={[styles.experience, { color: colors.textLight }]}>
                           {lawyer.years_of_exp} years experience
                         </Text>
                       )}
@@ -139,7 +141,7 @@ export default function LawyersScreen() {
                     <Ionicons
                       name={isExpanded ? 'chevron-up' : 'chevron-down'}
                       size={20}
-                      color={Colors.textLight}
+                      color={colors.textLight}
                     />
                   </View>
 
@@ -147,13 +149,13 @@ export default function LawyersScreen() {
                   {lawyer.specialization.length > 0 && (
                     <View style={styles.tagsRow}>
                       {lawyer.specialization.slice(0, 3).map((spec) => (
-                        <View key={spec} style={styles.tag}>
-                          <Text style={styles.tagText}>{spec}</Text>
+                        <View key={spec} style={[styles.tag, { backgroundColor: colors.primaryLight }]}>
+                          <Text style={[styles.tagText, { color: colors.primary }]}>{spec}</Text>
                         </View>
                       ))}
                       {lawyer.specialization.length > 3 && (
-                        <View style={[styles.tag, styles.tagMore]}>
-                          <Text style={[styles.tagText, styles.tagMoreText]}>
+                        <View style={[styles.tag, styles.tagMore, { backgroundColor: colors.surfaceAlt }]}>
+                          <Text style={[styles.tagText, styles.tagMoreText, { color: colors.textSecondary }]}>
                             +{lawyer.specialization.length - 3}
                           </Text>
                         </View>
@@ -164,8 +166,8 @@ export default function LawyersScreen() {
                   {/* Courts */}
                   {lawyer.practicing_courts.length > 0 && (
                     <View style={styles.courtsRow}>
-                      <Ionicons name="business-outline" size={13} color={Colors.textSecondary} />
-                      <Text style={styles.courtsText} numberOfLines={1}>
+                      <Ionicons name="business-outline" size={13} color={colors.textSecondary} />
+                      <Text style={[styles.courtsText, { color: colors.textSecondary }]} numberOfLines={1}>
                         {lawyer.practicing_courts.join(', ')}
                       </Text>
                     </View>
@@ -173,11 +175,11 @@ export default function LawyersScreen() {
 
                   {/* Expanded details */}
                   {isExpanded && (
-                    <View style={styles.expandedSection}>
+                    <View style={[styles.expandedSection, { borderTopColor: colors.border }]}>
                       {lawyer.city && (
                         <View style={styles.detailRow}>
-                          <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
-                          <Text style={styles.detailText}>
+                          <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
+                          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
                             {lawyer.address ? `${lawyer.address}, ${lawyer.city}` : lawyer.city}
                           </Text>
                         </View>
@@ -185,8 +187,8 @@ export default function LawyersScreen() {
 
                       {lawyer.bar_council_id && (
                         <View style={styles.detailRow}>
-                          <Ionicons name="card-outline" size={16} color={Colors.textSecondary} />
-                          <Text style={styles.detailText}>
+                          <Ionicons name="card-outline" size={16} color={colors.textSecondary} />
+                          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
                             Bar Council: {lawyer.bar_council_id}
                           </Text>
                         </View>
@@ -194,8 +196,8 @@ export default function LawyersScreen() {
 
                       {lawyer.languages.length > 0 && (
                         <View style={styles.detailRow}>
-                          <Ionicons name="language-outline" size={16} color={Colors.textSecondary} />
-                          <Text style={styles.detailText}>
+                          <Ionicons name="language-outline" size={16} color={colors.textSecondary} />
+                          <Text style={[styles.detailText, { color: colors.textSecondary }]}>
                             {lawyer.languages.join(', ')}
                           </Text>
                         </View>
@@ -205,19 +207,20 @@ export default function LawyersScreen() {
                       <View style={styles.contactActions}>
                         {lawyer.phone && (
                           <TouchableOpacity
-                            style={styles.contactButton}
+                            style={[styles.contactButton, { borderColor: colors.primary }]}
                             onPress={() => Linking.openURL(`tel:${lawyer.phone}`)}
                           >
-                            <Ionicons name="call" size={16} color={Colors.primary} />
-                            <Text style={styles.contactButtonText}>Call</Text>
+                            <Ionicons name="call" size={16} color={colors.primary} />
+                            <Text style={[styles.contactButtonText, { color: colors.primary }]}>Call</Text>
                           </TouchableOpacity>
                         )}
                         {lawyer.email && (
                           <TouchableOpacity
-                            style={styles.contactButton}
+                            style={[styles.contactButton, { borderColor: colors.primary }]}
                             onPress={() => Linking.openURL(`mailto:${lawyer.email}`)}
                           >
-                            <Ionicons name="mail" size={16} color={Colors.primary} />
+                            <Ionicons name="mail" size={16} color={colors.primary} />
+
                             <Text style={styles.contactButtonText}>Email</Text>
                           </TouchableOpacity>
                         )}

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import Header from '../components/ui/Header';
 import Card from '../components/ui/Card';
+import { useTheme } from '../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius, Shadow } from '../constants/theme';
 
 interface InfoRowProps {
@@ -21,9 +22,11 @@ interface InfoRowProps {
   label: string;
   value?: string | null;
   color?: string;
+  textColor?: string;
+  labelColor?: string;
 }
 
-function InfoRow({ icon, label, value, color = Colors.primary }: InfoRowProps) {
+function InfoRow({ icon, label, value, color = Colors.primary, textColor, labelColor }: InfoRowProps) {
   if (!value) return null;
   return (
     <View style={styles.infoRow}>
@@ -31,8 +34,8 @@ function InfoRow({ icon, label, value, color = Colors.primary }: InfoRowProps) {
         <Ionicons name={icon} size={16} color={color} />
       </View>
       <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={[styles.infoLabel, labelColor ? { color: labelColor } : null]}>{label}</Text>
+        <Text style={[styles.infoValue, textColor ? { color: textColor } : null]}>{value}</Text>
       </View>
     </View>
   );
@@ -41,6 +44,7 @@ function InfoRow({ icon, label, value, color = Colors.primary }: InfoRowProps) {
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { colors } = useTheme();
 
   const handleLogout = () => {
     Alert.alert(
@@ -62,15 +66,15 @@ export default function ProfileScreen() {
   const getRoleBadge = (role?: string) => {
     switch (role) {
       case 'police':
-        return { label: 'Police Officer', color: Colors.primary, icon: 'shield-checkmark' as const };
+        return { label: 'Police Officer', color: colors.primary, icon: 'shield-checkmark' as const };
       case 'superior':
-        return { label: 'Superior Officer', color: Colors.secondary, icon: 'star' as const };
+        return { label: 'Superior Officer', color: colors.secondary, icon: 'star' as const };
       case 'student':
         return { label: 'Law Student', color: '#7C3AED', icon: 'school' as const };
       case 'admin':
-        return { label: 'Administrator', color: Colors.error, icon: 'settings' as const };
+        return { label: 'Administrator', color: colors.error, icon: 'settings' as const };
       default:
-        return { label: 'User', color: Colors.textSecondary, icon: 'person' as const };
+        return { label: 'User', color: colors.textSecondary, icon: 'person' as const };
     }
   };
 
@@ -90,7 +94,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <Header
         title="Profile"
         showBack
@@ -103,12 +107,12 @@ export default function ProfileScreen() {
       >
         {/* Profile header */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+            <Text style={[styles.avatarText, { color: colors.primary }]}>
               {(user?.full_name || 'U').charAt(0).toUpperCase()}
             </Text>
           </View>
-          <Text style={styles.userName}>{user?.full_name || 'User'}</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>{user?.full_name || 'User'}</Text>
           <View style={[styles.roleBadge, { backgroundColor: roleBadge.color + '15' }]}>
             <Ionicons name={roleBadge.icon} size={14} color={roleBadge.color} />
             <Text style={[styles.roleText, { color: roleBadge.color }]}>
@@ -118,32 +122,36 @@ export default function ProfileScreen() {
         </View>
 
         {/* Account Information */}
-        <Text style={styles.sectionTitle}>Account Information</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Information</Text>
         <Card style={styles.infoCard}>
           <InfoRow
             icon="mail-outline"
             label="Email"
             value={user?.email}
-            color={Colors.primary}
+            color={colors.primary}
+            textColor={colors.text}
+            labelColor={colors.textSecondary}
           />
           <InfoRow
             icon="call-outline"
             label="Phone"
             value={user?.phone}
-            color={Colors.success}
+            color={colors.success}
+            textColor={colors.text}
+            labelColor={colors.textSecondary}
           />
           {user?.verified !== undefined && (
             <View style={styles.infoRow}>
-              <View style={[styles.infoIcon, { backgroundColor: (user.verified ? Colors.success : Colors.warning) + '15' }]}>
+              <View style={[styles.infoIcon, { backgroundColor: (user.verified ? colors.success : colors.warning) + '15' }]}>
                 <Ionicons
                   name={user.verified ? 'checkmark-circle' : 'alert-circle'}
                   size={16}
-                  color={user.verified ? Colors.success : Colors.warning}
+                  color={user.verified ? colors.success : colors.warning}
                 />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Verification Status</Text>
-                <Text style={[styles.infoValue, { color: user.verified ? Colors.success : Colors.warning }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Verification Status</Text>
+                <Text style={[styles.infoValue, { color: user.verified ? colors.success : colors.warning }]}>
                   {user.verified ? 'Verified' : 'Pending Verification'}
                 </Text>
               </View>
@@ -154,19 +162,23 @@ export default function ProfileScreen() {
         {/* Official Details (for police/superior roles) */}
         {(user?.badge_number || user?.station) && (
           <>
-            <Text style={styles.sectionTitle}>Official Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Official Details</Text>
             <Card style={styles.infoCard}>
               <InfoRow
                 icon="id-card-outline"
                 label="Badge Number"
                 value={user?.badge_number}
-                color={Colors.secondary}
+                color={colors.secondary}
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
               <InfoRow
                 icon="location-outline"
                 label="Station"
                 value={user?.station}
                 color="#7C3AED"
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
             </Card>
           </>
@@ -175,13 +187,15 @@ export default function ProfileScreen() {
         {/* Member since */}
         {user?.created_at && (
           <>
-            <Text style={styles.sectionTitle}>Membership</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Membership</Text>
             <Card style={styles.infoCard}>
               <InfoRow
                 icon="calendar-outline"
                 label="Member Since"
                 value={formatDate(user.created_at)}
-                color={Colors.info}
+                color={colors.info}
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
             </Card>
           </>
@@ -190,12 +204,12 @@ export default function ProfileScreen() {
         {/* Actions */}
         <View style={styles.actionsSection}>
           <TouchableOpacity
-            style={styles.logoutButton}
+            style={[styles.logoutButton, { backgroundColor: colors.errorLight }]}
             onPress={handleLogout}
             activeOpacity={0.7}
           >
-            <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-            <Text style={styles.logoutText}>Sign Out</Text>
+            <Ionicons name="log-out-outline" size={20} color={colors.error} />
+            <Text style={[styles.logoutText, { color: colors.error }]}>Sign Out</Text>
           </TouchableOpacity>
         </View>
 

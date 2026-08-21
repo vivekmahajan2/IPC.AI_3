@@ -17,6 +17,7 @@ import Card from '../../../components/ui/Card';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import EmptyState from '../../../components/ui/EmptyState';
 import Button from '../../../components/ui/Button';
+import { useTheme } from '../../../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
 import { FIRDraft } from '../../../types';
 
@@ -24,6 +25,7 @@ const STATUS_FILTERS = ['all', 'draft', 'submitted', 'under_review', 'approved',
 
 export default function FIRListScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   const { data: firs, isLoading, refetch } = useQuery({
@@ -40,12 +42,12 @@ export default function FIRListScreen() {
       onPress={() => router.push(`/(tabs)/fir/${item.id}` as any)}
       activeOpacity={0.7}
     >
-      <Card style={styles.firCard}>
+      <Card style={[styles.firCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.firTop}>
           <View style={styles.firInfo}>
-            <Text style={styles.firTitle} numberOfLines={1}>{item.title}</Text>
+            <Text style={[styles.firTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
             {item.fir_number && (
-              <Text style={styles.firNumber}>{item.fir_number}</Text>
+              <Text style={[styles.firNumber, { color: colors.textSecondary }]}>{item.fir_number}</Text>
             )}
           </View>
           <StatusBadge status={item.status} />
@@ -54,15 +56,15 @@ export default function FIRListScreen() {
         <View style={styles.firDetails}>
           {item.incident_details?.incident_place && (
             <View style={styles.detailRow}>
-              <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
-              <Text style={styles.detailText} numberOfLines={1}>
+              <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+              <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>
                 {item.incident_details.incident_place}
               </Text>
             </View>
           )}
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.detailText}>
+            <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+            <Text style={[styles.detailText, { color: colors.textSecondary }]}>
               {new Date(item.updated_at).toLocaleDateString('en-IN', {
                 day: 'numeric',
                 month: 'short',
@@ -75,12 +77,12 @@ export default function FIRListScreen() {
         {item.sections_applied && item.sections_applied.length > 0 && (
           <View style={styles.sectionsRow}>
             {item.sections_applied.slice(0, 3).map((s, i) => (
-              <View key={i} style={styles.sectionChip}>
-                <Text style={styles.sectionText}>{s}</Text>
+              <View key={i} style={[styles.sectionChip, { backgroundColor: colors.primaryLight }]}>
+                <Text style={[styles.sectionText, { color: colors.primary }]}>{s}</Text>
               </View>
             ))}
             {item.sections_applied.length > 3 && (
-              <Text style={styles.moreSections}>+{item.sections_applied.length - 3}</Text>
+              <Text style={[styles.moreSections, { color: colors.textLight }]}>+{item.sections_applied.length - 3}</Text>
             )}
           </View>
         )}
@@ -89,15 +91,15 @@ export default function FIRListScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>FIR Drafts</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>FIR Drafts</Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => router.push('/(tabs)/fir/new')}
         >
-          <Ionicons name="add" size={24} color={Colors.textOnPrimary} />
+          <Ionicons name="add" size={24} color={colors.textOnPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -107,19 +109,22 @@ export default function FIRListScreen() {
         data={STATUS_FILTERS}
         keyExtractor={(item) => item}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={[styles.filterRow, { alignItems: 'center' }]}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[
               styles.filterChip,
-              selectedFilter === item && styles.filterChipActive,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              selectedFilter === item && { backgroundColor: colors.primary, borderColor: colors.primary },
             ]}
             onPress={() => setSelectedFilter(item)}
           >
             <Text
               style={[
                 styles.filterText,
-                selectedFilter === item && styles.filterTextActive,
+                { color: colors.textSecondary },
+                selectedFilter === item && { color: colors.textOnPrimary, fontWeight: '700' },
               ]}
             >
               {item === 'all' ? 'All' : item.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -147,7 +152,7 @@ export default function FIRListScreen() {
                 <Button
                   title="Create New FIR"
                   onPress={() => router.push('/(tabs)/fir/new')}
-                  icon={<Ionicons name="add" size={18} color={Colors.textOnPrimary} />}
+                  icon={<Ionicons name="add" size={18} color={colors.textOnPrimary} />}
                 />
               }
             />

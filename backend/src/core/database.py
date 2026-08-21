@@ -47,3 +47,13 @@ async def get_db() -> AsyncSession:
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Run migrations/fixes on startup
+    from sqlalchemy import text
+    async with async_session() as session:
+        try:
+            await session.execute(text("ALTER TABLE users ADD COLUMN otp VARCHAR(6)"))
+            await session.commit()
+            print("Successfully added 'otp' column to users table.")
+        except Exception:
+            await session.rollback()

@@ -15,6 +15,7 @@ import {
   Linking,
   TextInput,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -239,7 +240,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeNew, { backgroundColor: '#7C3AED' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=BNS');
                 }}
               >
                 <Text style={styles.badgeMiniText}>NEW</Text>
@@ -250,7 +251,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeOld, { borderColor: '#7C3AED' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=IPC');
                 }}
               >
                 <Text style={[styles.badgeMiniTextOld, { color: '#7C3AED' }]}>OLD</Text>
@@ -267,7 +268,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeNew, { backgroundColor: '#059669' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=BNSS');
                 }}
               >
                 <Text style={styles.badgeMiniText}>NEW</Text>
@@ -278,7 +279,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeOld, { borderColor: '#059669' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=CrPC');
                 }}
               >
                 <Text style={[styles.badgeMiniTextOld, { color: '#059669' }]}>OLD</Text>
@@ -295,7 +296,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeNew, { backgroundColor: '#D97706' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=BSA');
                 }}
               >
                 <Text style={styles.badgeMiniText}>NEW</Text>
@@ -306,7 +307,7 @@ export default function HomeScreen() {
                 style={[styles.comparisonBadgeOld, { borderColor: '#D97706' }]}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/(tabs)/converter');
+                  router.push('/bare-act?act=IEA');
                 }}
               >
                 <Text style={[styles.badgeMiniTextOld, { color: '#D97706' }]}>OLD</Text>
@@ -489,14 +490,63 @@ export default function HomeScreen() {
   const renderBareActs = () => {
     const listItems = [
       {
-        title: 'All Bare Acts',
-        sub: 'Union of India - Act',
+        title: 'Bharatiya Nyaya Sanhita (BNS)',
+        sub: 'New Penal Code',
         icon: 'book-outline',
-        iconBg: 'rgba(16, 185, 129, 0.1)',
-        iconColor: '#10B981',
+        iconBg: 'rgba(124, 58, 237, 0.1)',
+        iconColor: '#7C3AED',
         action: () => {
-          setScreenState('dashboard');
-          router.push('/(tabs)/converter');
+          router.push('/bare-act?act=BNS');
+        }
+      },
+      {
+        title: 'Indian Penal Code (IPC)',
+        sub: 'Old Penal Code',
+        icon: 'book-outline',
+        iconBg: 'rgba(124, 58, 237, 0.1)',
+        iconColor: '#7C3AED',
+        action: () => {
+          router.push('/bare-act?act=IPC');
+        }
+      },
+      {
+        title: 'Bharatiya Nagarik Suraksha Sanhita (BNSS)',
+        sub: 'New Criminal Procedure Code',
+        icon: 'book-outline',
+        iconBg: 'rgba(5, 150, 105, 0.1)',
+        iconColor: '#059669',
+        action: () => {
+          router.push('/bare-act?act=BNSS');
+        }
+      },
+      {
+        title: 'Code of Criminal Procedure (CrPC)',
+        sub: 'Old Criminal Procedure Code',
+        icon: 'book-outline',
+        iconBg: 'rgba(5, 150, 105, 0.1)',
+        iconColor: '#059669',
+        action: () => {
+          router.push('/bare-act?act=CrPC');
+        }
+      },
+      {
+        title: 'Bharatiya Sakshya Adhiniyam (BSA)',
+        sub: 'New Indian Evidence Act',
+        icon: 'book-outline',
+        iconBg: 'rgba(217, 119, 6, 0.1)',
+        iconColor: '#D97706',
+        action: () => {
+          router.push('/bare-act?act=BSA');
+        }
+      },
+      {
+        title: 'Indian Evidence Act (IEA)',
+        sub: 'Old Indian Evidence Act',
+        icon: 'book-outline',
+        iconBg: 'rgba(217, 119, 6, 0.1)',
+        iconColor: '#D97706',
+        action: () => {
+          router.push('/bare-act?act=IEA');
         }
       },
       {
@@ -507,6 +557,15 @@ export default function HomeScreen() {
         iconColor: '#F59E0B',
         action: () => Alert.alert('Indian States Law', 'Opening database of Indian State-level acts...')
       },
+      {
+        title: 'Other Law',
+        sub: 'Civil, Family, Commercial, Cyber, Labour, State, Tax, Food Laws',
+        icon: 'briefcase-outline',
+        iconBg: 'rgba(124, 58, 237, 0.1)',
+        iconColor: '#7C3AED',
+        action: () => router.push('/other-law')
+      },
+
       {
         title: 'Supreme Court Rules, 2013',
         sub: 'Supreme Court Rules and Guidelines',
@@ -797,6 +856,19 @@ export default function HomeScreen() {
               </View>
               <Text style={[styles.coreCardTitle, { color: colors.text }]}>Judgment</Text>
               <Text style={[styles.coreCardSub, { color: colors.textSecondary }]}>All Indian Judgments</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.coreCard, { backgroundColor: colors.surface, borderColor: colors.border, width: cardWidth }]}
+              onPress={() => router.push('/other-law')}
+            >
+              <View style={styles.coreCardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(124, 58, 237, 0.1)' }]}>
+                  <Ionicons name="briefcase" size={20} color="#7C3AED" />
+                </View>
+              </View>
+              <Text style={[styles.coreCardTitle, { color: colors.text }]}>Other Law</Text>
+              <Text style={[styles.coreCardSub, { color: colors.textSecondary }]}>Civil, Family, Cyber, State...</Text>
             </TouchableOpacity>
           </View>
 

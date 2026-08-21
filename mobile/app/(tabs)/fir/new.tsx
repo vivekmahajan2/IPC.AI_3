@@ -17,6 +17,7 @@ import api from '../../../lib/api';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import Card from '../../../components/ui/Card';
+import { useTheme } from '../../../context/ThemeContext';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
 import { IncidentDetails } from '../../../types';
 import { saveOfflineFIR } from '../../../lib/db';
@@ -33,6 +34,7 @@ function generateUUID(): string {
 export default function NewFIRScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
 
   const [title, setTitle] = useState('');
   const [sections, setSections] = useState('');
@@ -247,13 +249,13 @@ export default function NewFIRScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New FIR Draft</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>New FIR Draft</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -268,20 +270,31 @@ export default function NewFIRScreen() {
             <View
               style={[
                 styles.stepDot,
-                index === currentStep && styles.stepDotActive,
-                index < currentStep && styles.stepDotDone,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                index === currentStep && { backgroundColor: colors.primary, borderColor: colors.primary },
+                index < currentStep && { backgroundColor: colors.success, borderColor: colors.success },
               ]}
             >
               {index < currentStep ? (
-                <Ionicons name="checkmark" size={12} color={Colors.textOnPrimary} />
+                <Ionicons name="checkmark" size={12} color={colors.textOnPrimary} />
               ) : (
-                <Text style={[styles.stepNumber, index === currentStep && styles.stepNumberActive]}>
+                <Text
+                  style={[
+                    styles.stepNumber,
+                    { color: colors.textSecondary },
+                    index === currentStep && { color: colors.textOnPrimary, fontWeight: '700' },
+                  ]}
+                >
                   {index + 1}
                 </Text>
               )}
             </View>
             <Text
-              style={[styles.stepLabel, index === currentStep && styles.stepLabelActive]}
+              style={[
+                styles.stepLabel,
+                { color: colors.textSecondary },
+                index === currentStep && { color: colors.primary, fontWeight: '700' },
+              ]}
             >
               {step}
             </Text>
@@ -302,7 +315,7 @@ export default function NewFIRScreen() {
       </ScrollView>
 
       {/* Navigation Buttons */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         {currentStep > 0 && (
           <Button
             title="Previous"
@@ -322,7 +335,7 @@ export default function NewFIRScreen() {
             title="Save Draft"
             onPress={handleSubmit}
             loading={createMutation.isPending}
-            icon={<Ionicons name="save-outline" size={18} color={Colors.textOnPrimary} />}
+            icon={<Ionicons name="save-outline" size={18} color={colors.textOnPrimary} />}
             style={styles.navButton}
           />
         )}

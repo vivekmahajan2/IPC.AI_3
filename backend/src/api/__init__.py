@@ -6,3 +6,5 @@ from .judgments import router as judgments_router
 from .lawyers import router as lawyers_router
 from .history import router as history_router
 from .admin import router as admin_router
+from .other_law import router as other_law_router
+

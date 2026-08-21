@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, BorderRadius, Spacing, FontSize, Shadow } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
+import { BorderRadius, Spacing, FontSize, Shadow } from '../constants/theme';
 import { ChatMessage, SourceReference } from '../types';
 
 interface ChatBubbleProps {
@@ -9,22 +10,30 @@ interface ChatBubbleProps {
 
 export default function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === 'user';
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
-      <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
-        <Text style={[styles.messageText, isUser ? styles.userText : styles.assistantText]}>
+      <View
+        style={[
+          styles.bubble,
+          isUser
+            ? [styles.userBubble, { backgroundColor: colors.primary }]
+            : [styles.assistantBubble, { backgroundColor: colors.surface, borderColor: colors.border }],
+        ]}
+      >
+        <Text style={[styles.messageText, { color: isUser ? colors.textOnPrimary : colors.text }]}>
           {message.content}
         </Text>
 
         {/* Source citations */}
         {message.sources && message.sources.length > 0 && (
-          <View style={styles.sourcesContainer}>
-            <Text style={styles.sourcesLabel}>Sources:</Text>
+          <View style={[styles.sourcesContainer, { borderTopColor: colors.border }]}>
+            <Text style={[styles.sourcesLabel, { color: colors.textSecondary }]}>Sources:</Text>
             {message.sources.map((source, index) => (
               <View key={index} style={styles.sourceItem}>
-                <View style={styles.sourceDot} />
-                <Text style={styles.sourceText}>
+                <View style={[styles.sourceDot, { backgroundColor: colors.secondary }]} />
+                <Text style={[styles.sourceText, { color: colors.textSecondary }]}>
                   {source.act && source.section
                     ? `${source.act} Section ${source.section}`
                     : source.title || 'Reference'}
@@ -35,7 +44,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           </View>
         )}
 
-        <Text style={[styles.timestamp, isUser ? styles.userTimestamp : styles.assistantTimestamp]}>
+        <Text style={[styles.timestamp, { color: isUser ? 'rgba(255,255,255,0.7)' : colors.textLight }]}>
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
@@ -60,46 +69,29 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   userBubble: {
-    backgroundColor: Colors.primary,
     borderBottomRightRadius: BorderRadius.sm,
   },
   assistantBubble: {
-    backgroundColor: Colors.surface,
     borderBottomLeftRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   messageText: {
     fontSize: FontSize.md,
     lineHeight: 22,
-  },
-  userText: {
-    color: Colors.textOnPrimary,
-  },
-  assistantText: {
-    color: Colors.text,
   },
   timestamp: {
     fontSize: FontSize.xs,
     marginTop: Spacing.xs,
     alignSelf: 'flex-end',
   },
-  userTimestamp: {
-    color: 'rgba(255,255,255,0.7)',
-  },
-  assistantTimestamp: {
-    color: Colors.textLight,
-  },
   sourcesContainer: {
     marginTop: Spacing.sm,
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
   },
   sourcesLabel: {
     fontSize: FontSize.xs,
     fontWeight: '600',
-    color: Colors.textSecondary,
     marginBottom: Spacing.xs,
   },
   sourceItem: {
@@ -111,12 +103,11 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.secondary,
     marginRight: Spacing.sm,
   },
   sourceText: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
     flex: 1,
   },
 });
+

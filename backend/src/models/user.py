@@ -15,7 +15,6 @@ class UserRole(str, enum.Enum):
     PUBLIC = "public"
 
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -24,6 +23,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     role = Column(SAEnum(UserRole), default=UserRole.POLICE, nullable=False)
     verified = Column(Boolean, default=False)
+    otp = Column(String(6), nullable=True)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
     badge_number = Column(String(50), nullable=True)

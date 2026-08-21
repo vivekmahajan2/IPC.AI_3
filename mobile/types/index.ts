@@ -70,6 +70,17 @@ export interface SectionMapping {
   is_identical: boolean;
 }
 
+export interface OtherLawStatute {
+  id: number;
+  category: string;
+  subcategory?: string;
+  act_name: string;
+  section: string;
+  title: string;
+  description: string;
+}
+
+
 export interface Judgment {
   id: number;
   case_title: string;

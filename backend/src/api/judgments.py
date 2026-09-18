@@ -7,7 +7,7 @@ from sqlalchemy import select, desc, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.dependencies import get_current_user
+from ..core.dependencies import get_current_user, get_current_user_optional
 from ..models.user import User
 from ..models.judgment import Judgment
 
@@ -37,7 +37,7 @@ async def list_judgments(
     skip: int = 0,
     limit: int = 20,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     query = select(Judgment)
 
@@ -70,7 +70,7 @@ async def search_judgments(
     skip: int = 0,
     limit: int = 20,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     return await list_judgments(q=q, court=court, year=year, skip=skip, limit=limit, db=db, current_user=current_user)
 
@@ -79,7 +79,7 @@ async def search_judgments(
 @router.get("/courts")
 async def list_courts(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     from sqlalchemy import distinct
     result = await db.execute(select(distinct(Judgment.court_name)).order_by(Judgment.court_name))
@@ -91,7 +91,7 @@ async def list_courts(
 async def get_judgment(
     judgment_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     result = await db.execute(select(Judgment).where(Judgment.id == judgment_id))
     judgment = result.scalar_one_or_none()

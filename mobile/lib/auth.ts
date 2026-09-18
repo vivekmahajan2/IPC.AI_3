@@ -64,3 +64,10 @@ export const auth = {
     await deleteItem(USER_KEY);
   },
 };
+
+export const storage = {
+  getItem,
+  setItem,
+  deleteItem,
+};
+

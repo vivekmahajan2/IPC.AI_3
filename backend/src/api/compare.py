@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -32,6 +33,21 @@ class MappingResponse(BaseModel):
         from_attributes = True
 
 
+def natural_sort_key_section(sec_str: Optional[str]) -> tuple:
+    """Parses section strings like '304A', '1(2)', '2(1)(a)' into natural numeric sort tuples."""
+    if not sec_str:
+        return (999999, 999999, "")
+    s = str(sec_str).strip()
+    m = re.match(r"^(\d+)(.*)", s)
+    if not m:
+        return (999998, 0, s.lower())
+    main_num = int(m.group(1))
+    rest = m.group(2).strip()
+    m_sub = re.search(r"\((\d+)\)", rest)
+    sub_num = int(m_sub.group(1)) if m_sub else 0
+    return (main_num, sub_num, rest.lower())
+
+
 # --- Endpoints ---
 
 @router.get("", response_model=list[MappingResponse])
@@ -51,12 +67,18 @@ async def compare_sections(
     """
     query = select(SectionMapping)
 
+    is_new_act_selected = False
     if act:
         act_upper = act.upper()
         if act_upper in ["BNS", "BNSS", "BSA"]:
+            is_new_act_selected = True
             query = query.where(SectionMapping.new_act == act_upper)
+            if not section and not q:
+                query = query.where(SectionMapping.new_section != "")
         else:
             query = query.where(SectionMapping.old_act == act_upper)
+            if not section and not q:
+                query = query.where(SectionMapping.old_section != "")
 
     if section:
         if direction == "old_to_new":
@@ -76,12 +98,22 @@ async def compare_sections(
             )
         )
 
-    # If loading all sections, let's allow a larger limit (e.g. 1000) so the user can scroll through the acts
+    # If browsing all sections of an act, allow a limit of 1000 so all sections are available
     limit_val = 1000 if (act and not section and not q) else 50
     query = query.limit(limit_val)
     result = await db.execute(query)
-    mappings = result.scalars().all()
+    mappings = list(result.scalars().all())
 
+    # Sort in ascending natural numerical order
+    def sort_key(m: SectionMapping):
+        target_sec = m.new_section if (is_new_act_selected or (not act and direction == "new_to_old")) else m.old_section
+        fallback_sec = m.old_section if (is_new_act_selected or (not act and direction == "new_to_old")) else m.new_section
+        primary = natural_sort_key_section(target_sec)
+        if primary[0] == 999999:
+            return (1, natural_sort_key_section(fallback_sec))
+        return (0, primary)
+
+    mappings.sort(key=sort_key)
     return mappings
 
 
@@ -95,7 +127,16 @@ async def get_bulk_mappings(
     The mobile app downloads this on first launch and caches in SQLite.
     """
     result = await db.execute(select(SectionMapping))
-    mappings = result.scalars().all()
+    mappings = list(result.scalars().all())
+
+    act_order = {"IPC": 1, "BNS": 1, "CRPC": 2, "BNSS": 2, "IEA": 3, "BSA": 3}
+
+    def bulk_sort_key(m: SectionMapping):
+        rank = act_order.get((m.old_act or "").upper(), 9)
+        sec = m.old_section or m.new_section
+        return (rank, natural_sort_key_section(sec))
+
+    mappings.sort(key=bulk_sort_key)
 
     data = []
     for m in mappings:

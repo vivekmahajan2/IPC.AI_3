@@ -58,8 +58,50 @@ export default function NewFIRScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const steps = ['Basic Info', 'Complainant', 'Incident', 'Accused & Sections'];
 
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+
   const updateDetail = (key: keyof IncidentDetails, value: string) => {
     setDetails((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSuggestSections = async () => {
+    if (!details.description?.trim()) {
+      Alert.alert(
+        'Incident Description Required',
+        'Please enter the offence description in Step 3 (Incident) first so the AI can analyze the facts.'
+      );
+      return;
+    }
+    setIsSuggesting(true);
+    try {
+      const res = await api.post('/legal/suggest-sections', {
+        description: details.description,
+        title: title || 'FIR Offence',
+      });
+      const suggestedList: string[] = res.data?.suggested_sections || [];
+      const detailsList: any[] = res.data?.details || [];
+      setSuggestions(detailsList);
+
+      if (suggestedList.length > 0) {
+        const currentArr = sections
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const combined = Array.from(new Set([...currentArr, ...suggestedList]));
+        setSections(combined.join(', '));
+        Alert.alert(
+          'AI Suggested Sections',
+          `Added ${suggestedList.length} applicable sections (BNS/IPC) based on your incident description.`
+        );
+      } else {
+        Alert.alert('No Direct Matches', 'No specific statutory sections identified automatically. Please enter them manually.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.detail || 'Failed to analyze incident with AI.');
+    } finally {
+      setIsSuggesting(false);
+    }
   };
 
   const createMutation = useMutation({
@@ -236,12 +278,54 @@ export default function NewFIRScreen() {
               onChangeText={(v) => updateDetail('property_value', v)}
               keyboardType="numeric"
             />
+            <View style={{ marginVertical: 10 }}>
+              <TouchableOpacity
+                onPress={handleSuggestSections}
+                disabled={isSuggesting}
+                style={{
+                  backgroundColor: colors.primaryLight,
+                  borderColor: colors.primary,
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>
+                  {isSuggesting ? 'Analyzing Incident with AI...' : 'Suggest Applicable Sections with AI'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {suggestions.length > 0 && (
+              <View style={{ marginBottom: 12, backgroundColor: colors.surface, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 8 }}>
+                  AI Legal Rationale:
+                </Text>
+                {suggestions.map((s, idx) => (
+                  <View key={idx} style={{ marginBottom: 6 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>
+                      {s.section} — {s.title}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      {s.reason}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
             <Input
               label="Sections Applied"
-              placeholder="e.g., IPC 302, IPC 307, BNS 103"
+              placeholder="e.g., BNS 303(2), BNS 305, IPC 379"
               value={sections}
               onChangeText={setSections}
-              hint="Comma-separated section numbers"
+              hint="Comma-separated section numbers (auto-filled by AI or edited manually)"
             />
           </View>
         );

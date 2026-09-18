@@ -11,11 +11,12 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 
 import api from '../lib/api';
+import { naturalCompareSections } from '../lib/sort';
 import Header from '../components/ui/Header';
 import Button from '../components/ui/Button';
 import { useTheme } from '../context/ThemeContext';
@@ -24,10 +25,15 @@ import { OtherLawStatute } from '../types';
 
 export default function OtherLawScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ category?: string }>();
+  const initialCategory = params.category
+    ? (params.category.toLowerCase().includes('state') ? 'State Laws' : params.category)
+    : null;
   const { width: windowWidth } = useWindowDimensions();
   const { colors, isDark } = useTheme();
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [otherLawTab, setOtherLawTab] = useState<'statutes' | 'lawyers'>('statutes');
   const [selectedStatute, setSelectedStatute] = useState<OtherLawStatute | null>(null);
@@ -64,16 +70,16 @@ export default function OtherLawScreen() {
     enabled: !!selectedCategory,
   });
 
-  // 8 categories requested by user
+  // 8 categories requested by user with verified section counts
   const otherCategories = [
-    { name: 'Civil Law', icon: 'document-text-outline', color: '#3B82F6', desc: 'Contracts, Property, Torts, Civil Procedure' },
-    { name: 'Family Law', icon: 'people-outline', color: '#10B981', desc: 'Marriage, Divorce, Adoption, Succession' },
-    { name: 'Commercial Law', icon: 'business-outline', color: '#F59E0B', desc: 'Companies, LLP, IBC, Banking' },
-    { name: 'Cyber Law', icon: 'shield-checkmark-outline', color: '#EC4899', desc: 'IT Act, Cyber Crimes, Digital/Privacy' },
-    { name: 'Labour Law', icon: 'construct-outline', color: '#8B5CF6', desc: 'Employment, Disputes, Wages, Unions' },
-    { name: 'State Laws', icon: 'map-outline', color: '#06B6D4', desc: 'State-specific regulations (Maharashtra)' },
-    { name: 'Tax Law', icon: 'card-outline', color: '#EF4444', desc: 'Income Tax, GST, Corporate Tax' },
-    { name: 'Food Law', icon: 'fast-food-outline', color: '#10B981', desc: 'FSSAI Act, Food Safety & Standards' },
+    { name: 'Civil Law', icon: 'document-text-outline', color: '#3B82F6', desc: 'Contracts, Property, Torts, Civil Procedure', count: '409 Sections' },
+    { name: 'Family Law', icon: 'people-outline', color: '#10B981', desc: 'Marriage, Divorce, Adoption, Succession', count: '240 Sections' },
+    { name: 'Commercial Law', icon: 'business-outline', color: '#F59E0B', desc: 'Companies, LLP, IBC, Banking, Consumer', count: '1,301 Sections' },
+    { name: 'Cyber Law', icon: 'shield-checkmark-outline', color: '#EC4899', desc: 'IT Act, Cyber Crimes, DPDP 2023, Digital/Privacy', count: '101 Sections' },
+    { name: 'Labour Law', icon: 'construct-outline', color: '#8B5CF6', desc: 'Employment, Disputes, Wages, Unions, POSH', count: '219 Sections' },
+    { name: 'State Laws', icon: 'map-outline', color: '#06B6D4', desc: 'Rent Control, RERA, Police Act, MCOCA, Land', count: '376 Sections' },
+    { name: 'Tax Law', icon: 'card-outline', color: '#EF4444', desc: 'Income Tax, GST, IGST, Corporate Tax', count: '508 Sections' },
+    { name: 'Food Law', icon: 'fast-food-outline', color: '#10B981', desc: 'FSSAI Act, Food Safety & Standards', count: '101 Sections' },
   ];
 
   const handleContactLawyer = (lawyerName: string) => {
@@ -83,24 +89,46 @@ export default function OtherLawScreen() {
   const renderCategoryDetail = () => {
     if (!selectedCategory) return null;
 
-    const filteredStatutes = (otherLawStatutes || []).filter((s: OtherLawStatute) => {
-      const text = searchQuery.toLowerCase();
-      return (
-        s.title.toLowerCase().includes(text) ||
-        s.act_name.toLowerCase().includes(text) ||
-        s.section.toLowerCase().includes(text) ||
-        s.description.toLowerCase().includes(text)
-      );
+    // Available subcategories for filtering
+    const subcategories = Array.from(
+      new Set(
+        (otherLawStatutes || [])
+          .map((s: OtherLawStatute) => s.subcategory)
+          .filter(Boolean)
+      )
+    ).sort() as string[];
+
+    let list = otherLawStatutes || [];
+    if (selectedSubcategory) {
+      list = list.filter((s: OtherLawStatute) => s.subcategory === selectedSubcategory);
+    }
+    if (searchQuery.trim()) {
+      const text = searchQuery.toLowerCase().trim();
+      list = list.filter((s: OtherLawStatute) => {
+        return (
+          s.title.toLowerCase().includes(text) ||
+          s.act_name.toLowerCase().includes(text) ||
+          s.section.toLowerCase().includes(text) ||
+          s.description.toLowerCase().includes(text)
+        );
+      });
+    }
+
+    const filteredStatutes = [...list].sort((a: OtherLawStatute, b: OtherLawStatute) => {
+      const actCmp = a.act_name.localeCompare(b.act_name);
+      if (actCmp !== 0) return actCmp;
+      return naturalCompareSections(a.section, b.section);
     });
 
     return (
       <View style={{ flex: 1 }}>
         <Header
           title={selectedCategory}
-          subtitle="Other Law Category"
+          subtitle={`${filteredStatutes.length} Statutory Sections`}
           showBack
           onBack={() => {
             setSelectedCategory(null);
+            setSelectedSubcategory(null);
             setSearchQuery('');
           }}
         />
@@ -147,6 +175,43 @@ export default function OtherLawScreen() {
                 style={[styles.searchInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
               />
             </View>
+
+            {subcategories.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.xs }}
+                style={{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}
+              >
+                <TouchableOpacity
+                  onPress={() => setSelectedSubcategory(null)}
+                  style={[
+                    styles.filterPill,
+                    { borderColor: colors.border },
+                    !selectedSubcategory && { backgroundColor: colors.primary, borderColor: colors.primary }
+                  ]}
+                >
+                  <Text style={[styles.filterPillText, { color: !selectedSubcategory ? colors.textOnPrimary : colors.textSecondary }]}>
+                    All
+                  </Text>
+                </TouchableOpacity>
+                {subcategories.map((sub) => (
+                  <TouchableOpacity
+                    key={sub}
+                    onPress={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
+                    style={[
+                      styles.filterPill,
+                      { borderColor: colors.border },
+                      selectedSubcategory === sub && { backgroundColor: colors.primary, borderColor: colors.primary }
+                    ]}
+                  >
+                    <Text style={[styles.filterPillText, { color: selectedSubcategory === sub ? colors.textOnPrimary : colors.textSecondary }]}>
+                      {sub}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
 
             {isOtherLawLoading ? (
               <View style={styles.centerContainer}>
@@ -316,8 +381,15 @@ export default function OtherLawScreen() {
                   style={[styles.gridCard, { width: (windowWidth - Spacing.xl * 2 - Spacing.md) / 2 - 2, backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => setSelectedCategory(cat.name)}
                 >
-                  <View style={[styles.iconBox, { backgroundColor: cat.color + '15' }]}>
-                    <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm }}>
+                    <View style={[styles.iconBox, { backgroundColor: cat.color + '15', marginBottom: 0 }]}>
+                      <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                    </View>
+                    {cat.count && (
+                      <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, backgroundColor: cat.color + '18' }}>
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: cat.color }}>{cat.count}</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={[styles.gridCardTitle, { color: colors.text }]}>{cat.name}</Text>
                   <Text style={{ color: colors.textSecondary, fontSize: FontSize.xs, lineHeight: 16 }}>{cat.desc}</Text>
@@ -486,5 +558,18 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: FontSize.lg,
     fontWeight: '700',
+  },
+
+  // Filter Pills
+  filterPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    marginRight: 6,
+  },
+  filterPillText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
 });

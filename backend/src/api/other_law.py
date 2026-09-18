@@ -5,7 +5,7 @@ from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.dependencies import get_current_user
+from ..core.dependencies import get_current_user, get_current_user_optional
 from ..models.user import User
 from ..models.other_law import OtherLawStatute
 
@@ -38,7 +38,7 @@ async def list_other_law_statutes(
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     query = select(OtherLawStatute)
 
@@ -54,18 +54,30 @@ async def list_other_law_statutes(
                 OtherLawStatute.section.ilike(search),
                 OtherLawStatute.title.ilike(search),
                 OtherLawStatute.description.ilike(search),
+                OtherLawStatute.subcategory.ilike(search),
+                OtherLawStatute.category.ilike(search),
             )
         )
 
-    query = query.offset(skip).limit(limit)
+    limit_val = 500 if (category and limit == 50) else limit
+    query = query.offset(skip).limit(limit_val)
     result = await db.execute(query)
-    return result.scalars().all()
+    statutes = list(result.scalars().all())
+
+    import re
+    def statute_sort_key(s: OtherLawStatute):
+        m = re.search(r"\d+", s.section or "")
+        num = int(m.group()) if m else 999999
+        return (s.act_name or "", num, s.section or "")
+
+    statutes.sort(key=statute_sort_key)
+    return statutes
 
 
 @router.get("/categories", response_model=List[CategoryResponse])
 async def list_categories_and_subcategories(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     result = await db.execute(select(OtherLawStatute.category, OtherLawStatute.subcategory).distinct())
     rows = result.all()
@@ -102,7 +114,7 @@ async def list_categories_and_subcategories(
 async def get_statute(
     statute_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     result = await db.execute(select(OtherLawStatute).where(OtherLawStatute.id == statute_id))
     statute = result.scalar_one_or_none()

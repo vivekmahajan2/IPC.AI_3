@@ -1,4 +1,5 @@
 import { IncidentDetails, SectionMapping } from '../types';
+import { naturalCompareSections } from './sort';
 
 export interface OfflineFIR {
   client_uuid: string;
@@ -106,6 +107,13 @@ export function searchOfflineMappings(
       (m.new_text && m.new_text.toLowerCase().includes(lowerQuery))
     );
   });
+
+  filtered.sort((a: any, b: any) => {
+    const aSec = direction === 'old_to_new' ? a.old_section : a.new_section;
+    const bSec = direction === 'old_to_new' ? b.old_section : b.new_section;
+    return naturalCompareSections(aSec, bSec);
+  });
+
   return filtered.slice(0, 50);
 }
 

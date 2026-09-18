@@ -4,6 +4,11 @@ import Constants from 'expo-constants';
 import { auth } from './auth';
 
 const getBaseUrl = (): string => {
+  // Production / Explicit deployment API URL
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, '');
+  }
+
   if (Platform.OS === 'web') {
     return 'http://localhost:8000';
   }

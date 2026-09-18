@@ -24,6 +24,13 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   {
+    icon: 'shield-checkmark-outline',
+    title: 'Citizen Complaints Desk',
+    subtitle: 'File, track, or convert to FIR',
+    color: '#E8590C',
+    route: '/complaints',
+  },
+  {
     icon: 'book-outline',
     title: 'Judgments',
     subtitle: 'Search landmark judgments',

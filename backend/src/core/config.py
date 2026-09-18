@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "IPC.ai"
     DEBUG: bool = True
 
-    # Database — defaults to SQLite for local dev; set to PostgreSQL in .env for production
-    DATABASE_URL: str = "sqlite+aiosqlite:///./ipcai.db"
+    # Database — Supabase PostgreSQL
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:Vivekmahajan@db.aaexeshzfonwpuaohsxl.supabase.co:5432/postgres"
 
     # JWT
     JWT_SECRET_KEY: str = "change-this-secret-key"
@@ -16,8 +16,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
-    # Groq
+    # Primary LLM: Gemini (3.7 Flash, 3.6 Flash, 3.5 Flash)
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+
+    # Fallback LLM: Groq (groq/compound)
     GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "groq/compound"
 
     # Cloudflare R2
     R2_ACCOUNT_ID: str = ""

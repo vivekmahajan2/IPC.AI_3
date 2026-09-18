@@ -98,6 +98,7 @@ export const Spacing = {
 };
 
 export const FontSize = {
+  xxs: 10,
   xs: 11,
   sm: 13,
   md: 15,
@@ -109,6 +110,7 @@ export const FontSize = {
 };
 
 export const BorderRadius = {
+  xs: 4,
   sm: 6,
   md: 10,
   lg: 14,

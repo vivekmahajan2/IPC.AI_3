@@ -7,4 +7,6 @@ from .lawyer import Lawyer
 from .history import SearchHistory
 from .statute import StatuteChunk
 from .other_law import OtherLawStatute
-
+from .complaint import Complaint, ComplaintStatus
+from .dictionary import LegalDictionary
+from .lawyer_workspace import LawyerCaseNote, LawyerBookmark

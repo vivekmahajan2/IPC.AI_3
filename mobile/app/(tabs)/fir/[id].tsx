@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -71,10 +73,64 @@ export default function FIRDetailScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fir', id] });
       queryClient.invalidateQueries({ queryKey: ['firs'] });
-      Alert.alert('Success', 'FIR finalized');
+      Alert.alert('Success', 'FIR finalized and official PDF generated!');
     },
     onError: (e: any) => Alert.alert('Error', e?.response?.data?.detail || 'Failed'),
   });
+
+  const { data: auditTrail } = useQuery({
+    queryKey: ['fir-audit', id],
+    queryFn: async () => {
+      try {
+        const res = await api.get(`/fir/${id}/audit`);
+        return res.data as any[];
+      } catch (e) {
+        return [];
+      }
+    },
+    enabled: !!id,
+  });
+
+  const { data: proceduralData } = useQuery({
+    queryKey: ['fir-procedural', id],
+    queryFn: async () => {
+      try {
+        const res = await api.get(`/fir/${id}/procedural-suggestions`);
+        return res.data;
+      } catch (e) {
+        return null;
+      }
+    },
+    enabled: !!id,
+  });
+
+  const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
+
+  const toggleStep = (stepId: string) => {
+    setCompletedSteps((prev) => ({ ...prev, [stepId]: !prev[stepId] }));
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const res = await api.get(`/fir/${id}/pdf`);
+      const pdfUrl = res.data?.pdf_url;
+      if (!pdfUrl) {
+        Alert.alert('Error', 'PDF download URL not found.');
+        return;
+      }
+      const fullUrl = pdfUrl.startsWith('http')
+        ? pdfUrl
+        : `${api.defaults.baseURL || 'http://127.0.0.1:8000'}${pdfUrl}`;
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.open(fullUrl, '_blank');
+      } else {
+        await Linking.openURL(fullUrl);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.detail || 'Failed to download FIR PDF.');
+    }
+  };
 
   if (isLoading || !fir) {
     return (
@@ -174,11 +230,115 @@ export default function FIRDetailScreen() {
           </Card>
         )}
 
+        {/* BNSS Procedural Guidance (Automatic Suggestions Engine) */}
+        {proceduralData && proceduralData.steps?.length > 0 && (
+          <Card style={styles.section}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+                <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>
+                  Procedural Guidance (BNSS)
+                </Text>
+              </View>
+              <View style={{ backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary }}>
+                  {Object.values(completedSteps).filter(Boolean).length} / {proceduralData.steps.length} DONE
+                </Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 12 }}>
+              {proceduralData.summary}
+            </Text>
+            {proceduralData.steps.map((st: any) => {
+              const isDone = !!completedSteps[st.id];
+              return (
+                <TouchableOpacity
+                  key={st.id}
+                  onPress={() => toggleStep(st.id)}
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    backgroundColor: isDone ? colors.surfaceAlt : colors.surface,
+                    borderColor: isDone ? colors.success : colors.border,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    padding: 10,
+                    marginBottom: 8,
+                    gap: 10,
+                  }}
+                >
+                  <Ionicons
+                    name={isDone ? 'checkbox' : 'square-outline'}
+                    size={20}
+                    color={isDone ? colors.success : colors.textSecondary}
+                    style={{ marginTop: 2 }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: isDone ? colors.textSecondary : colors.text, textDecorationLine: isDone ? 'line-through' : 'none' }}>
+                        {st.title}
+                      </Text>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: st.priority === 'HIGH' ? colors.error : colors.warning }}>
+                        {st.bnss_section}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 16 }}>
+                      {st.description}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </Card>
+        )}
+
         {/* Review Comments */}
         {fir.review_comments && (
           <Card style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Review Comments</Text>
             <Text style={[styles.reviewComments, { color: colors.textSecondary }]}>{fir.review_comments}</Text>
+          </Card>
+        )}
+
+        {/* Audit & Approval Trail */}
+        {auditTrail && auditTrail.length > 0 && (
+          <Card style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Audit & Approval Trail</Text>
+            {auditTrail.map((entry: any, index: number) => (
+              <View
+                key={entry.id || index}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  marginBottom: 10,
+                  gap: 10,
+                }}
+              >
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.primary,
+                    marginTop: 6,
+                  }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, textTransform: 'capitalize' }}>
+                    {entry.action} {entry.user_name ? `by ${entry.user_name}` : ''}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                    {new Date(entry.timestamp).toLocaleString('en-IN')}
+                  </Text>
+                  {entry.details?.comments ? (
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2, fontStyle: 'italic' }}>
+                      "{entry.details.comments}"
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
           </Card>
         )}
 
@@ -222,6 +382,16 @@ export default function FIRDetailScreen() {
               loading={finalizeMutation.isPending}
               fullWidth
               icon={<Ionicons name="document-outline" size={18} color={Colors.textOnPrimary} />}
+            />
+          )}
+
+          {fir.status === 'finalized' && (
+            <Button
+              title="Download Official FIR PDF"
+              variant="primary"
+              onPress={handleDownloadPDF}
+              fullWidth
+              icon={<Ionicons name="download-outline" size={18} color={colors.textOnPrimary} />}
             />
           )}
         </View>

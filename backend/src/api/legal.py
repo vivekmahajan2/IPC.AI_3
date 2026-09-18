@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
 from ..core.database import get_db
-from ..core.dependencies import get_current_user
+from ..core.dependencies import get_current_user, get_current_user_optional
 from ..models.user import User
 from ..models.history import SearchHistory
 
@@ -36,7 +36,7 @@ class LegalQueryResponse(BaseModel):
 async def legal_query(
     request: LegalQueryRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """
     AI-powered legal Q&A using RAG (Mock implementation using database query matches):
@@ -181,27 +181,183 @@ async def legal_query(
             )
         )
 
-    if not answer:
-        answer = (
-            f"I understand your legal query: '{request.query}'.\n\n"
-            "I could not locate specific matching section mappings or judgments in the local database. "
-            "Please try querying using common keywords like 'murder' (IPC 302 / BNS 101), 'rape' (IPC 376 / BNS 63), 'cheating' (IPC 420 / BNS 318), "
-            "or landmark case names like 'Bachan Singh' or 'Nanavati'."
-        )
+    # Convert retrieved rows to structured context chunks for the LLM
+    context_chunks = []
+    for m in mappings:
+        context_chunks.append({
+            "act": f"{m.old_act} / {m.new_act}",
+            "section": f"{m.old_section} -> {m.new_section}",
+            "title": f"{m.old_title or ''} / {m.new_title or ''}",
+            "text": f"Old ({m.old_act} s.{m.old_section}): {m.old_text or ''}\nNew ({m.new_act} s.{m.new_section}): {m.new_text or ''}\nNotes: {m.mapping_notes or ''}",
+        })
+    for j in judgments:
+        context_chunks.append({
+            "act": "Precedent",
+            "section": j.citation or "",
+            "title": j.case_title,
+            "text": f"Court: {j.court_name}. Bench: {j.bench or 'N/A'}. Summary: {j.summary or ''}",
+        })
+    for s in other_statutes:
+        context_chunks.append({
+            "act": s.act_name,
+            "section": s.section,
+            "title": s.title,
+            "text": s.description,
+        })
 
-    # Log query to history
-    history_entry = SearchHistory(
-        user_id=current_user.id,
-        module="legal_ai",
+    # Call RAG Service (Gemini primary -> Groq fallback)
+    from ..services.rag_service import query_legal_ai
+    rag_result = await query_legal_ai(
         query=request.query,
-        response_summary=answer[:200],
+        context_type=request.context,
+        context_chunks=context_chunks,
     )
-    db.add(history_entry)
-    await db.commit()
+
+    # If Gemini or Groq answered, use the synthesized AI answer
+    if rag_result.get("provider") in ("gemini", "groq"):
+        answer = rag_result["answer"]
+    elif not answer:
+        answer = rag_result["answer"]
+
+    # Log query to history if user is authenticated
+    if current_user:
+        history_entry = SearchHistory(
+            user_id=current_user.id,
+            module="legal_ai",
+            query=request.query,
+            response_summary=answer[:200],
+        )
+        db.add(history_entry)
+        await db.commit()
 
     return LegalQueryResponse(
         answer=answer,
         sources=sources,
         query=request.query,
     )
+
+
+class SuggestSectionsRequest(BaseModel):
+    description: str
+    title: Optional[str] = None
+
+
+class SectionSuggestion(BaseModel):
+    section: str
+    act: str
+    title: str
+    reason: str
+
+
+class SuggestSectionsResponse(BaseModel):
+    suggested_sections: list[str]
+    details: list[SectionSuggestion]
+
+
+@router.post("/suggest-sections", response_model=SuggestSectionsResponse)
+async def suggest_sections(
+    request: SuggestSectionsRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    Analyze incident description and recommend applicable legal sections under BNS & IPC.
+    Uses AI RAG pipeline with database section mapping fallback.
+    """
+    from ..models.mapping import SectionMapping
+    from ..services.rag_service import query_legal_ai
+    
+    desc_lower = (request.description or "").lower()
+    keywords = [w for w in desc_lower.split() if len(w) > 3]
+    
+    # Retrieve matching section mappings from DB
+    mappings = []
+    if keywords:
+        conditions = []
+        for kw in keywords[:10]:
+            term = f"%{kw}%"
+            conditions.append(SectionMapping.old_title.ilike(term))
+            conditions.append(SectionMapping.new_title.ilike(term))
+            conditions.append(SectionMapping.old_text.ilike(term))
+            conditions.append(SectionMapping.new_text.ilike(term))
+        query = select(SectionMapping).where(or_(*conditions)).limit(8)
+        result = await db.execute(query)
+        mappings = result.scalars().all()
+
+    context_chunks = []
+    for m in mappings:
+        context_chunks.append({
+            "act": f"{m.old_act} -> {m.new_act}",
+            "section": f"{m.old_section} -> {m.new_section}",
+            "title": f"{m.new_title or m.old_title or ''}",
+            "text": f"Old: {m.old_text or ''}\nNew: {m.new_text or ''}",
+        })
+
+    prompt = (
+        f"Incident Title: {request.title or 'N/A'}\n"
+        f"Incident Description:\n{request.description}\n\n"
+        "Based on Indian Criminal Law (Bharatiya Nyaya Sanhita 2023 and Indian Penal Code), "
+        "identify the exact applicable legal sections for this incident. "
+        "Format your answer clearly with the section code (e.g., 'BNS 303(2)' or 'IPC 379'), "
+        "the legal title of the offence, and a 1-sentence legal justification."
+    )
+
+    rag_result = await query_legal_ai(
+        query=prompt,
+        context_type="fir_drafting",
+        context_chunks=context_chunks,
+    )
+
+    suggested_sections: list[str] = []
+    details: list[SectionSuggestion] = []
+
+    # First, populate from database matches
+    for m in mappings:
+        sec_label = f"BNS {m.new_section}"
+        if sec_label not in suggested_sections:
+            suggested_sections.append(sec_label)
+            details.append(
+                SectionSuggestion(
+                    section=sec_label,
+                    act="BNS",
+                    title=m.new_title or m.old_title or "Offence",
+                    reason=f"Corresponds to legacy IPC Section {m.old_section} ({m.old_title or ''}).",
+                )
+            )
+
+    # Extract any explicit section mentions from the LLM answer
+    llm_answer = rag_result.get("answer", "")
+    found_bns = re.findall(r'BNS\s*(?:Section\s*)?(\d+(?:\(\d+\))?)', llm_answer, re.IGNORECASE)
+    for num in found_bns:
+        s = f"BNS {num}"
+        if s not in suggested_sections:
+            suggested_sections.append(s)
+            details.append(
+                SectionSuggestion(
+                    section=s,
+                    act="BNS",
+                    title="Suggested BNS Section",
+                    reason="Identified by AI legal reasoning from incident facts.",
+                )
+            )
+
+    found_ipc = re.findall(r'IPC\s*(?:Section\s*)?(\d+[A-Za-z]?)', llm_answer, re.IGNORECASE)
+    for num in found_ipc:
+        s = f"IPC {num}"
+        if s not in suggested_sections:
+            suggested_sections.append(s)
+            details.append(
+                SectionSuggestion(
+                    section=s,
+                    act="IPC",
+                    title="Legacy IPC Section",
+                    reason="Equivalent legacy section for reference.",
+                )
+            )
+
+    return SuggestSectionsResponse(
+        suggested_sections=suggested_sections[:6],
+        details=details[:6],
+    )
+
 

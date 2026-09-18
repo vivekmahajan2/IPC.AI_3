@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from pydantic import BaseModel
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -311,6 +311,89 @@ async def finalize_fir(
     return fir
 
 
+class AuditLogResponse(BaseModel):
+    id: int
+    action: str
+    user_id: int
+    user_name: Optional[str] = None
+    details: Optional[dict] = None
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+@router.get("/{fir_id}/audit", response_model=List[AuditLogResponse])
+async def get_fir_audit_trail(
+    fir_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve full chronological audit trail for this FIR."""
+    result = await db.execute(select(FIRDraft).where(FIRDraft.id == fir_id))
+    fir = result.scalar_one_or_none()
+    if not fir:
+        raise HTTPException(status_code=404, detail="FIR not found")
+    if current_user.role.value not in ("superior", "admin") and fir.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    result = await db.execute(
+        select(AuditLog, User.full_name)
+        .join(User, AuditLog.user_id == User.id, isouter=True)
+        .where(AuditLog.fir_id == fir_id)
+        .order_by(AuditLog.timestamp.asc())
+    )
+    rows = result.all()
+    audit_trail = []
+    for audit, user_name in rows:
+        audit_trail.append(
+            AuditLogResponse(
+                id=audit.id,
+                action=audit.action,
+                user_id=audit.user_id,
+                user_name=user_name,
+                details=audit.details,
+                timestamp=audit.timestamp,
+            )
+        )
+    return audit_trail
+
+
+@router.get("/{fir_id}/pdf/stream")
+async def stream_fir_pdf(
+    fir_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dynamically generate and stream the official Indian FIR PDF format."""
+    result = await db.execute(select(FIRDraft).where(FIRDraft.id == fir_id))
+    fir = result.scalar_one_or_none()
+    if not fir:
+        raise HTTPException(status_code=404, detail="FIR not found")
+    if current_user.role.value not in ("superior", "admin") and fir.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    from ..services.pdf_service import generate_fir_pdf
+    pdf_bytes = generate_fir_pdf(
+        fir_number=fir.fir_number or f"FIR-PS-{fir.id}",
+        title=fir.title,
+        incident_details=fir.incident_details or {},
+        sections_applied=fir.sections_applied or [],
+        status=fir.status.value,
+        created_at=fir.created_at,
+        officer_name=current_user.full_name or "Investigating Officer",
+        station=current_user.station or "Central Police Station",
+    )
+    filename = f"{fir.fir_number or f'FIR_{fir.id}'}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"'
+        },
+    )
+
+
 @router.get("/{fir_id}/pdf")
 async def get_fir_pdf(
     fir_id: int,
@@ -324,10 +407,173 @@ async def get_fir_pdf(
         raise HTTPException(status_code=404, detail="FIR not found")
     if current_user.role.value not in ("superior", "admin") and fir.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-    if not fir.pdf_url:
-        raise HTTPException(status_code=404, detail="PDF not generated yet")
+    if not fir.pdf_url and fir.status != FIRStatus.FINALIZED:
+        raise HTTPException(status_code=400, detail="PDF is only available after FIR is finalized")
 
-    # Try to generate a signed URL from R2, otherwise return the stored key
+    # Try to generate a signed URL from R2, otherwise provide direct stream URL
     from ..services.storage_service import get_signed_url
-    signed_url = await get_signed_url(fir.pdf_url)
-    return {"pdf_url": signed_url or fir.pdf_url}
+    signed_url = await get_signed_url(fir.pdf_url) if fir.pdf_url else None
+    stream_url = f"/fir/{fir_id}/pdf/stream"
+
+    return {
+        "pdf_url": signed_url or stream_url,
+        "fir_number": fir.fir_number,
+        "is_direct_stream": signed_url is None,
+    }
+
+
+class ProceduralStep(BaseModel):
+    id: str
+    bnss_section: str
+    title: str
+    category: str
+    priority: str  # HIGH, MEDIUM, STANDARD
+    description: str
+    mandatory: bool
+
+
+class ProceduralSuggestionsResponse(BaseModel):
+    fir_id: int
+    fir_number: Optional[str] = None
+    summary: str
+    steps: List[ProceduralStep]
+
+
+@router.get("/{fir_id}/procedural-suggestions", response_model=ProceduralSuggestionsResponse)
+async def get_fir_procedural_suggestions(
+    fir_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Automatic Procedural Suggestions Engine (ps.md Section 3.C):
+    Analyzes facts and applied sections to recommend context-aware BNSS investigation proceedings.
+    """
+    result = await db.execute(select(FIRDraft).where(FIRDraft.id == fir_id))
+    fir = result.scalar_one_or_none()
+    if not fir:
+        raise HTTPException(status_code=404, detail="FIR not found")
+
+    sections = [s.upper() for s in (fir.sections_applied or [])]
+    details = fir.incident_details or {}
+
+    steps: List[ProceduralStep] = []
+
+    # Step 1: Mandatory Electronic Audio-Video Recording of Search & Seizure
+    steps.append(
+        ProceduralStep(
+            id="bnss-105",
+            bnss_section="Section 105 BNSS",
+            title="Audio-Video Electronic Recording of Search & Seizure",
+            category="Evidence Preservation",
+            priority="HIGH",
+            description="All searches of places and seizure of articles/weapons must be recorded using mobile/electronic audio-video recording. Forward footage to the District Magistrate without delay.",
+            mandatory=True,
+        )
+    )
+
+    # Check for severe offences (7 years or more)
+    severe_keywords = ["302", "103", "304", "105", "376", "63", "307", "109", "395", "310", "392", "309"]
+    is_heinous = any(any(k in s for k in severe_keywords) for s in sections)
+
+    # Step 2: Forensic Team Crime Scene Visit (Section 176(3) BNSS)
+    if is_heinous or details.get("property_value"):
+        steps.append(
+            ProceduralStep(
+                id="bnss-176-3",
+                bnss_section="Section 176(3) BNSS",
+                title="Mandatory Forensic Expert Crime Scene Inspection",
+                category="Forensic Science",
+                priority="HIGH",
+                description="For offences punishable with 7+ years imprisonment, the Investigating Officer must requisition forensic experts to inspect the crime scene, collect physical samples, and video-record the process.",
+                mandatory=is_heinous,
+            )
+        )
+
+    # Step 3: Arrest Procedure & Section 35 BNSS Compliance
+    if is_heinous:
+        steps.append(
+            ProceduralStep(
+                id="bnss-35-severe",
+                bnss_section="Section 35 & 58 BNSS",
+                title="Arrest of Accused & Production within 24 Hours",
+                category="Arrest & Custody",
+                priority="HIGH",
+                description="Arrest authorized without warrant for grave cognizable offences. Accused must be produced before the nearest Judicial Magistrate within 24 hours excluding travel time.",
+                mandatory=True,
+            )
+        )
+    else:
+        steps.append(
+            ProceduralStep(
+                id="bnss-35-notice",
+                bnss_section="Section 35(3) BNSS",
+                title="Issue Notice of Appearance (Arnesh Kumar Compliance)",
+                category="Notice & Summons",
+                priority="MEDIUM",
+                description="For offences punishable with imprisonment up to 7 years, direct arrest is restricted. Issue a formal Notice of Appearance under Section 35(3) BNSS requiring the accused to cooperate with inquiry.",
+                mandatory=True,
+            )
+        )
+
+    # Step 4: Medical Examination of Accused (Section 53 BNSS)
+    steps.append(
+        ProceduralStep(
+            id="bnss-53",
+            bnss_section="Section 53 BNSS",
+            title="Medical Examination of Arrested Person",
+            category="Medical & Health",
+            priority="MEDIUM",
+            description="Medical examination by a registered medical practitioner is mandatory immediately after arrest. If the arrested person or victim is female, the examination must be conducted by or under supervision of a female medical officer.",
+            mandatory=True,
+        )
+    )
+
+    # Step 5: Recording of Statements (Section 180 BNSS)
+    steps.append(
+        ProceduralStep(
+            id="bnss-180",
+            bnss_section="Section 180 BNSS",
+            title="Recording of Witness Statements via Electronic Means",
+            category="Investigation",
+            priority="STANDARD",
+            description="Examine persons acquainted with the facts. Statements may be recorded by audio-video electronic means as permitted under Section 180 BNSS.",
+            mandatory=False,
+        )
+    )
+
+    # Step 6: Case Diary Maintenance (Section 192 BNSS)
+    steps.append(
+        ProceduralStep(
+            id="bnss-192",
+            bnss_section="Section 192 BNSS",
+            title="Daily Maintenance of Police Case Diary",
+            category="Documentation",
+            priority="HIGH",
+            description="Enter day-by-day proceedings of investigation in the prescribed Case Diary, including time of information, places visited, and statement summaries.",
+            mandatory=True,
+        )
+    )
+
+    # Step 7: Statutory Final Report / Charge Sheet Deadline (Section 193 BNSS)
+    deadline_days = 90 if is_heinous else 60
+    steps.append(
+        ProceduralStep(
+            id="bnss-193",
+            bnss_section="Section 193 BNSS",
+            title=f"Completion of Investigation within {deadline_days} Days",
+            category="Statutory Deadline",
+            priority="HIGH",
+            description=f"Investigation should be completed without unnecessary delay. Final Police Report (Charge Sheet) must be submitted before the Magistrate within {deadline_days} days to prevent default bail under Section 187 BNSS.",
+            mandatory=True,
+        )
+    )
+
+    return ProceduralSuggestionsResponse(
+        fir_id=fir.id,
+        fir_number=fir.fir_number,
+        summary=f"Automated statutory proceedings recommendation under Bharatiya Nagarik Suraksha Sanhita (BNSS, 2023) for FIR {fir.fir_number or fir.id}.",
+        steps=steps,
+    )
+
+

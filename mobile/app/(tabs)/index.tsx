@@ -16,6 +16,7 @@ import {
   TextInput,
   useWindowDimensions,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -26,6 +27,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { useTheme } from '../../context/ThemeContext';
 import api from '../../lib/api';
+import { storage } from '../../lib/auth';
+import MarkdownRenderer from '../../components/MarkdownRenderer';
 import Card from '../../components/ui/Card';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Input from '../../components/ui/Input';
@@ -34,6 +37,88 @@ import { Spacing, FontSize, BorderRadius, Shadow } from '../../constants/theme';
 import { FIRDraft } from '../../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+const QUIZ_QUESTIONS: QuizQuestion[] = [
+  {
+    id: 1,
+    question: 'Which Section of the Bharatiya Nyaya Sanhita (BNS), 2023 replaces Section 302 IPC for Punishment for Murder?',
+    options: ['Section 101', 'Section 103(1)', 'Section 109', 'Section 115'],
+    correctIndex: 1,
+    explanation: 'Section 103(1) of BNS, 2023 defines and punishes murder (death or life imprisonment and fine), replacing Section 302 of the Indian Penal Code, 1860.',
+  },
+  {
+    id: 2,
+    question: 'Under Section 105 of BNSS, 2023, what procedural safeguard is now mandatory during search and seizure?',
+    options: [
+      'Written clearance from District Magistrate',
+      'Audio-video electronic recording of the entire process',
+      'Mandatory presence of three advocates',
+      'Live transmission to national media portal',
+    ],
+    correctIndex: 1,
+    explanation: 'Section 105 of BNSS, 2023 mandates audio-video electronic recording of search of a place or seizure of any property, preferably via mobile phone, to be submitted to the Magistrate without delay.',
+  },
+  {
+    id: 3,
+    question: 'What reformative punishment has been introduced in BNS for first-time petty theft under ₹5,000 (Section 303(2))?',
+    options: [
+      'Mandatory solitary confinement for 6 months',
+      'Community Service upon restitution',
+      'Suspension of passport and driving license',
+      'Public apology in local newspapers',
+    ],
+    correctIndex: 1,
+    explanation: 'Section 303(2) proviso of BNS introduces Community Service as a reformative sentence for first-time offenders where the stolen property value is less than ₹5,000 upon return or restitution.',
+  },
+  {
+    id: 4,
+    question: 'Under Bharatiya Sakshya Adhiniyam (BSA), 2023, how are electronic and digital records treated in evidence?',
+    options: [
+      'Inadmissible unless supported by handwritten affidavit',
+      'Primary evidence with the same legal effect and validity as paper documents',
+      'Only admissible as secondary hearsay',
+      'Requires prior sanction of the President of India',
+    ],
+    correctIndex: 1,
+    explanation: 'Section 61 of BSA, 2023 explicitly provides that electronic or digital records have the same legal standing, effect, and admissibility as conventional paper documents.',
+  },
+  {
+    id: 5,
+    question: 'Under Section 33 & Schedule of Digital Personal Data Protection (DPDP) Act, 2023, what is the maximum penalty for failure to prevent personal data breach?',
+    options: ['Up to ₹10 Crore', 'Up to ₹50 Crore', 'Up to ₹250 Crore', 'Up to ₹500 Crore'],
+    correctIndex: 2,
+    explanation: 'Section 33 and the Schedule of the DPDP Act, 2023 prescribe statutory penalties up to ₹250 Crore for failure to take reasonable security safeguards to prevent personal data breaches.',
+  },
+];
+
+const QUICK_PROMPTS_BY_MODE = {
+  advice: [
+    { title: '🛡️ Arrest Rights BNSS 35', prompt: 'What are the statutory rights and procedural safeguards for an accused during arrest under Section 35 of BNSS, 2023?' },
+    { title: '💳 Cheque Bounce NI 138', prompt: 'What is the exact step-by-step procedure and notice timeline for cheque bounce under Section 138 of Negotiable Instruments Act?' },
+    { title: '⚖️ Anticipatory Bail', prompt: 'What are the legal conditions and grounds for grant of anticipatory bail under BNSS Section 482?' },
+    { title: '🌐 Cyber Fraud & UPI', prompt: 'What legal steps and remedies exist under BNS and IT Act for an unauthorized UPI bank transfer fraud?' },
+  ],
+  strategy: [
+    { title: '🚗 Vehicle Theft & Fake Plate', prompt: 'Accused intercepted with a stolen motor vehicle having a forged number plate and altered chassis number. What sections apply under BNS and Motor Vehicles Act?' },
+    { title: '💼 Commercial Contract Breach', prompt: 'Supplier delivered substandard materials and withheld refund despite formal dispute notice. Evaluate civil recovery vs criminal breach of trust under BNS.' },
+    { title: '🏡 Land Encroachment', prompt: 'Complainant alleges unauthorized construction on ancestral agricultural land accompanied by verbal threats. Analyze criminal trespass and intimidation provisions.' },
+    { title: '🏥 Medical Negligence', prompt: 'Patient suffered severe complications following an unconsented surgical procedure. Evaluate criminal negligence under BNS 106 vs consumer tort liability.' },
+  ],
+  judgment: [
+    { title: '🏛️ Lalita Kumari (Mandatory FIR)', prompt: 'Lalita Kumari v. Government of U.P. on mandatory registration of FIR under Section 154 CrPC' },
+    { title: '🛡️ D.K. Basu (Arrest Guidelines)', prompt: 'D.K. Basu v. State of West Bengal guidelines for arrest, custody and interrogation' },
+    { title: '⚖️ Arnesh Kumar (41A Notice)', prompt: 'Arnesh Kumar v. State of Bihar guidelines on arrests for offences punishable with imprisonment up to 7 years' },
+    { title: '🩸 Bachan Singh (Death Penalty)', prompt: 'Bachan Singh v. State of Punjab rarest of rare doctrine for capital punishment' },
+  ]
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -58,18 +143,56 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'advocate'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // AI Helper states
-  const [aiTitle, setAiTitle] = useState('AI Assistant');
+  // AI Suite Workspace states
+  const [aiTitle, setAiTitle] = useState('Legal AI Suite');
   const [aiSubtitle, setAiSubtitle] = useState('');
   const [aiDescription, setAiDescription] = useState('');
+  const [aiWorkspaceMode, setAiWorkspaceMode] = useState<'advice' | 'strategy' | 'judgment'>('advice');
+  const [aiWorkspaceQuery, setAiWorkspaceQuery] = useState('');
+  const [aiWorkspaceLoading, setAiWorkspaceLoading] = useState(false);
+  const [aiWorkspaceResult, setAiWorkspaceResult] = useState<{
+    answer: string;
+    sources?: any[];
+    suggestedSections?: string[];
+    details?: any[];
+    judgments?: any[];
+  } | null>(null);
+  const [aiWorkspaceError, setAiWorkspaceError] = useState<string | null>(null);
+
+  // Daily Poll state
+  const [isPollModalOpen, setIsPollModalOpen] = useState(false);
+  const [userPollVote, setUserPollVote] = useState<number | null>(null);
+  const [pollSelectedOption, setPollSelectedOption] = useState<number | null>(null);
+  const [pollVoteCounts, setPollVoteCounts] = useState<number[]>([824, 372, 145, 87]);
+
+  // Quiz Modal state
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [quizSelectedOption, setQuizSelectedOption] = useState<number | null>(null);
+  const [quizIsAnswered, setQuizIsAnswered] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizFinished, setQuizFinished] = useState(false);
 
   // UI interaction states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  interface LegalDictItem {
+    id: number;
+    term: string;
+    definition: string;
+    simple_explanation: string;
+    related_provisions: string[];
+    examples?: string;
+    category: string;
+  }
+
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [dictQuery, setDictQuery] = useState('');
-  const [dictResult, setDictResult] = useState<string | null>(null);
+  const [dictItems, setDictItems] = useState<LegalDictItem[]>([]);
+  const [selectedTerm, setSelectedTerm] = useState<LegalDictItem | null>(null);
+  const [isDictLoading, setIsDictLoading] = useState(false);
+  const [dictCategory, setDictCategory] = useState('All');
 
   // Form states for login/signup modal
   const [email, setEmail] = useState('');
@@ -86,6 +209,12 @@ export default function HomeScreen() {
     if (!mappingsCached) {
       downloadMappings().catch(console.warn);
     }
+    // Retrieve stored daily poll vote if available
+    storage.getItem('@daily_poll_vote_2026').then((val) => {
+      if (val !== null) {
+        setUserPollVote(parseInt(val, 10));
+      }
+    }).catch(console.warn);
   }, []);
 
   // Fetch FIRs query (used in background)
@@ -109,6 +238,135 @@ export default function HomeScreen() {
       duration: 250,
       useNativeDriver: true,
     }).start();
+  };
+
+  // AI Suite Workspace submit handler
+  const handleAIWorkspaceSubmit = async (customQuery?: string) => {
+    const q = (customQuery || aiWorkspaceQuery).trim();
+    if (!q || aiWorkspaceLoading) return;
+    if (customQuery) setAiWorkspaceQuery(customQuery);
+
+    setAiWorkspaceLoading(true);
+    setAiWorkspaceError(null);
+    setAiWorkspaceResult(null);
+
+    try {
+      if (aiWorkspaceMode === 'advice') {
+        const res = await api.post('/legal/query', { query: q, context: 'legal_advice' });
+        setAiWorkspaceResult({
+          answer: res.data.answer,
+          sources: res.data.sources || [],
+        });
+      } else if (aiWorkspaceMode === 'strategy') {
+        const [suggestRes, queryRes] = await Promise.allSettled([
+          api.post('/legal/suggest-sections', { description: q, title: 'Case Analysis' }),
+          api.post('/legal/query', {
+            query: `Analyze these case facts and provide comprehensive legal strategy, applicable offences under BNS/BNSS/IPC, defense strategy, and procedural next steps for: ${q}`,
+            context: 'case_strategy'
+          }),
+        ]);
+
+        let suggestedSections: string[] = [];
+        let details: any[] = [];
+        if (suggestRes.status === 'fulfilled' && suggestRes.value && (suggestRes.value as any).data) {
+          suggestedSections = (suggestRes.value as any).data.suggested_sections || [];
+          details = (suggestRes.value as any).data.details || [];
+        }
+
+        let answer = '';
+        let sources: any[] = [];
+        if (queryRes.status === 'fulfilled' && queryRes.value && (queryRes.value as any).data) {
+          answer = (queryRes.value as any).data.answer || '';
+          sources = (queryRes.value as any).data.sources || [];
+        } else if (details.length > 0) {
+          answer = `### Recommended Applicable Sections\n\n` +
+            details.map((d: any) => `**${d.section}** (${d.title})\n${d.reason}`).join('\n\n');
+        }
+
+        setAiWorkspaceResult({
+          answer: answer || 'Analysis completed. Review suggested sections above.',
+          sources,
+          suggestedSections,
+          details,
+        });
+      } else if (aiWorkspaceMode === 'judgment') {
+        let dbJudgments: any[] = [];
+        try {
+          const jRes = await api.get('/judgments/search', { params: { q: q, limit: 10 } });
+          dbJudgments = jRes.data || [];
+        } catch (e) {
+          console.warn('DB Judgment search failed:', e);
+        }
+
+        const queryRes = await api.post('/legal/query', {
+          query: `Provide landmark Indian judicial precedents, Supreme Court rulings, and case citations for: ${q}`,
+          context: 'judgment_precedents'
+        });
+
+        setAiWorkspaceResult({
+          answer: queryRes.data.answer,
+          sources: queryRes.data.sources || [],
+          judgments: dbJudgments,
+        });
+      }
+    } catch (err: any) {
+      console.error('AI Workspace error:', err);
+      setAiWorkspaceError(
+        err.response?.data?.detail ||
+        'Unable to complete legal analysis. Please verify your network connection and try again.'
+      );
+    } finally {
+      setAiWorkspaceLoading(false);
+    }
+  };
+
+  const handleShareAIResult = async () => {
+    if (!aiWorkspaceResult?.answer) return;
+    try {
+      await Share.share({
+        title: 'IPC.AI Legal Analysis',
+        message: `${aiWorkspaceResult.answer}\n\nGenerated by IPC.AI - Legal Intelligence Platform`,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  };
+
+  const handleVotePoll = async (index: number) => {
+    setUserPollVote(index);
+    setPollVoteCounts((prev) => prev.map((cnt, i) => (i === index ? cnt + 1 : cnt)));
+    try {
+      await storage.setItem('@daily_poll_vote_2026', String(index));
+    } catch (e) {
+      console.warn('Failed to persist poll vote:', e);
+    }
+  };
+
+  const handleSelectQuizOption = (optionIndex: number) => {
+    if (quizIsAnswered) return;
+    setQuizSelectedOption(optionIndex);
+    setQuizIsAnswered(true);
+    if (optionIndex === QUIZ_QUESTIONS[quizIndex].correctIndex) {
+      setQuizScore((s) => s + 1);
+    }
+  };
+
+  const handleNextQuizQuestion = () => {
+    if (quizIndex < QUIZ_QUESTIONS.length - 1) {
+      setQuizIndex((prev) => prev + 1);
+      setQuizSelectedOption(null);
+      setQuizIsAnswered(false);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  const resetQuiz = () => {
+    setQuizIndex(0);
+    setQuizSelectedOption(null);
+    setQuizIsAnswered(false);
+    setQuizScore(0);
+    setQuizFinished(false);
   };
 
   const handleAuthAction = async () => {
@@ -196,24 +454,35 @@ export default function HomeScreen() {
     },
   ];
 
-  // Mock legal dictionary words
-  const legalDictionary: Record<string, string> = {
-    affidavit: 'A written statement confirmed by oath or affirmation, for use as evidence in court.',
-    bail: 'The temporary release of an accused person awaiting trial, sometimes on condition that a sum of money is lodged to guarantee their appearance in court.',
-    cognizable: 'An offense in which a police officer has the authority to make an arrest without a warrant.',
-    sanhita: 'A compilation of laws or statutes, used to refer to the new criminal codes (e.g., Bharatiya Nyaya Sanhita).',
-    fir: 'First Information Report, a document prepared by police organizations when they receive information about the commission of a cognizable offense.',
-    injunction: 'A judicial order that restrains a person from beginning or continuing an action threatening or invading the legal right of another.',
-    habeas: 'A writ requiring a person under arrest to be brought before a judge or into court, especially to secure their release unless lawful grounds are shown.',
+  const fetchDictionaryTerms = async (query = '', category = 'All') => {
+    setIsDictLoading(true);
+    try {
+      const params: any = {};
+      if (query.trim()) params.q = query.trim();
+      if (category !== 'All') params.category = category;
+      const res = await api.get('/dictionary', { params });
+      const data: LegalDictItem[] = res.data || [];
+      setDictItems(data);
+      if (data.length > 0) {
+        setSelectedTerm(data[0]);
+      } else {
+        setSelectedTerm(null);
+      }
+    } catch (err) {
+      console.log('Error fetching dictionary:', err);
+    } finally {
+      setIsDictLoading(false);
+    }
   };
 
-  const handleSearchDictionary = () => {
-    const term = dictQuery.toLowerCase().trim();
-    if (legalDictionary[term]) {
-      setDictResult(legalDictionary[term]);
-    } else {
-      setDictResult(`Definition for "${dictQuery}" not found. Try search terms like: FIR, cognizable, bail, sanhita.`);
+  useEffect(() => {
+    if (isDictionaryOpen) {
+      fetchDictionaryTerms(dictQuery, dictCategory);
     }
+  }, [isDictionaryOpen, dictCategory]);
+
+  const handleSearchDictionary = () => {
+    fetchDictionaryTerms(dictQuery, dictCategory);
   };
 
   const handleContactLawyer = (lawyerName: string) => {
@@ -551,11 +820,11 @@ export default function HomeScreen() {
       },
       {
         title: 'Indian States Law',
-        sub: 'Contains all state law of India',
+        sub: 'Contains all state law of India (376 Sections)',
         icon: 'map-outline',
         iconBg: 'rgba(245, 158, 11, 0.1)',
         iconColor: '#F59E0B',
-        action: () => Alert.alert('Indian States Law', 'Opening database of Indian State-level acts...')
+        action: () => router.push('/other-law?category=State%20Laws')
       },
       {
         title: 'Other Law',
@@ -572,7 +841,11 @@ export default function HomeScreen() {
         icon: 'hammer-outline',
         iconBg: 'rgba(59, 130, 246, 0.1)',
         iconColor: '#3B82F6',
-        action: () => Alert.alert('Supreme Court Rules, 2013', 'Official handbook of Supreme Court regulations.')
+        action: () => {
+          setAiWorkspaceMode('advice');
+          setScreenState('ai-helper');
+          handleAIWorkspaceSubmit('Provide an overview of the Supreme Court Rules 2013, key procedures, filing timelines for Special Leave Petitions (SLP), and registry requirements.');
+        }
       },
       {
         title: 'Practice and Procedure of Supreme Court',
@@ -580,7 +853,11 @@ export default function HomeScreen() {
         icon: 'layers-outline',
         iconBg: 'rgba(99, 102, 241, 0.1)',
         iconColor: '#6366F1',
-        action: () => Alert.alert('Practice & Procedure', 'Supreme court practice directives and procedural guidelines.')
+        action: () => {
+          setAiWorkspaceMode('advice');
+          setScreenState('ai-helper');
+          handleAIWorkspaceSubmit('Explain the practice and procedure of the Supreme Court of India: filing SLP under Article 136, Writ Petitions under Article 32, listing procedure, mentioning before CJI, and urgent hearings.');
+        }
       },
       {
         title: 'Law Dictionary',
@@ -649,7 +926,11 @@ export default function HomeScreen() {
                   styles.quickRefButton,
                   { backgroundColor: colors.surface, borderLeftColor: ref.color, width: cardWidth }
                 ]}
-                onPress={() => Alert.alert(ref.label, `Browse legal ${ref.label.toLowerCase()} mappings...`)}
+                onPress={() => {
+                  setAiWorkspaceMode('advice');
+                  setScreenState('ai-helper');
+                  handleAIWorkspaceSubmit(`What are the key ${ref.label} under Indian administrative and criminal statutes, their binding nature, and legal hierarchy under Article 13 of the Constitution?`);
+                }}
               >
                 <Ionicons name={ref.icon as any} size={14} color={ref.color} style={{ marginRight: 6 }} />
                 <Text style={[styles.quickRefText, { color: colors.text }]} numberOfLines={1}>{ref.label}</Text>
@@ -660,7 +941,11 @@ export default function HomeScreen() {
           {/* Repealed Acts Banner Card at Bottom */}
           <TouchableOpacity
             style={[styles.repealedCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => Alert.alert('Repealed Acts', 'Browse historical and repealed laws of India.')}
+            onPress={() => {
+              setAiWorkspaceMode('advice');
+              setScreenState('ai-helper');
+              handleAIWorkspaceSubmit('Explain the transition from repealed Indian Penal Code, CrPC, and Evidence Act to Bharatiya Nyaya Sanhita, BNSS, and BSA effective July 1, 2024, and how pending cases under repealed acts are dealt with.');
+            }}
           >
             <View style={[styles.courtIconContainer, { backgroundColor: 'rgba(239, 68, 68, 0.1)', marginRight: Spacing.md }]}>
               <Ionicons name="book" size={20} color="#EF4444" />
@@ -676,66 +961,341 @@ export default function HomeScreen() {
     );
   };
 
-  // Render Sub-Screen: AI Helper Page (Blank page with backward option)
+  // Render Sub-Screen: Interactive Legal AI Workspace
   const renderAIHelper = () => {
-    let iconName: any = 'bulb-outline';
-    
-    if (aiTitle === 'Judgment AI') {
-      iconName = 'hammer-outline';
-    } else if (aiTitle === 'Legal AI') {
-      iconName = 'analytics-outline';
-    } else if (aiTitle === 'Legal Advice') {
-      iconName = 'chatbubbles-outline';
-    } else {
-      iconName = 'document-text-outline';
+    const activePrompts = QUICK_PROMPTS_BY_MODE[aiWorkspaceMode] || [];
+
+    let placeholderText = 'Ask any legal question regarding Indian statutes, procedures, or rights...';
+    if (aiWorkspaceMode === 'strategy') {
+      placeholderText = 'Describe case facts, dispute details, or FIR scenario to get statutory strategy...';
+    } else if (aiWorkspaceMode === 'judgment') {
+      placeholderText = 'Search landmark cases by title (e.g. Lalita Kumari), citation, court, or legal doctrine...';
     }
 
     return (
       <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.subScreenHeader}>
+        {/* Header */}
+        <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
           <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>{aiTitle}</Text>
+            <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.md }]}>
+              {aiWorkspaceMode === 'advice' ? 'Legal Advice' : aiWorkspaceMode === 'strategy' ? 'Case & Doc Strategy' : 'Judgment AI'}
+            </Text>
+            <Text style={{ fontSize: 10, color: colors.primary, fontWeight: '700' }}>AI Statutory Intelligence</Text>
           </View>
-          <View style={{ width: 40 }} />
+          <TouchableOpacity
+            onPress={() => {
+              setAiWorkspaceQuery('');
+              setAiWorkspaceResult(null);
+              setAiWorkspaceError(null);
+            }}
+            style={styles.backButton}
+          >
+            <Ionicons name="refresh-outline" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xxl }}>
-          <View style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
-            backgroundColor: colors.surface,
-            borderWidth: 1,
-            borderColor: colors.border,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: Spacing.lg
-          }}>
-            <Ionicons name={iconName} size={40} color={colors.primary} />
-          </View>
-          
-          <Text style={{
-            fontSize: FontSize.lg,
-            fontWeight: '700',
-            color: colors.text,
-            textAlign: 'center',
-            marginBottom: Spacing.xs
-          }}>
-            {aiSubtitle}
-          </Text>
-
-          <Text style={{
-            fontSize: FontSize.sm,
-            color: colors.textSecondary,
-            textAlign: 'center',
-            lineHeight: 20
-          }}>
-            {aiDescription}
-          </Text>
+        {/* Mode Selector Segmented Tabs */}
+        <View style={[styles.aiModeTabsBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          {[
+            { key: 'advice', label: 'Legal Advice', icon: 'chatbubbles-outline' },
+            { key: 'strategy', label: 'Case Strategy', icon: 'analytics-outline' },
+            { key: 'judgment', label: 'Judgment AI', icon: 'hammer-outline' },
+          ].map((tab) => {
+            const isSelected = aiWorkspaceMode === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[
+                  styles.aiModeTabButton,
+                  isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  !isSelected && { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                ]}
+                onPress={() => {
+                  setAiWorkspaceMode(tab.key as any);
+                  setAiWorkspaceResult(null);
+                  setAiWorkspaceError(null);
+                }}
+              >
+                <Ionicons
+                  name={tab.icon as any}
+                  size={14}
+                  color={isSelected ? colors.textOnPrimary : colors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={[
+                    styles.aiModeTabButtonText,
+                    { color: isSelected ? colors.textOnPrimary : colors.textSecondary },
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
+
+        <ScrollView
+          contentContainerStyle={styles.aiWorkspaceScrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Active Mode Banner */}
+          <View style={[styles.aiModeBannerCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.aiModeBannerIconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons
+                name={
+                  aiWorkspaceMode === 'advice'
+                    ? 'chatbubbles'
+                    : aiWorkspaceMode === 'strategy'
+                    ? 'shield-checkmark'
+                    : 'library'
+                }
+                size={20}
+                color={colors.primary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.aiModeBannerTitle, { color: colors.text }]}>
+                {aiWorkspaceMode === 'advice'
+                  ? 'Instant Legal Consultation'
+                  : aiWorkspaceMode === 'strategy'
+                  ? 'Case Strategy & Statutory Mapping'
+                  : 'Landmark Precedent & Judgment Search'}
+              </Text>
+              <Text style={[styles.aiModeBannerSubtitle, { color: colors.textSecondary }]}>
+                {aiWorkspaceMode === 'advice'
+                  ? 'Ask any query on BNS, BNSS, BSA, arrest rights, civil disputes, or consumer remedies.'
+                  : aiWorkspaceMode === 'strategy'
+                  ? 'Input incident facts to get applicable BNS/IPC sections, penal liabilities, and defense steps.'
+                  : 'Search Supreme Court and High Court landmark cases, citations, and ratio decidendi.'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Prompts Suggestions */}
+          <View style={{ marginBottom: Spacing.md }}>
+            <Text style={[styles.aiSectionSmallTitle, { color: colors.textSecondary }]}>QUICK SCENARIOS</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
+              {activePrompts.map((p, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.aiPromptChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => handleAIWorkspaceSubmit(p.prompt)}
+                >
+                  <Text style={[styles.aiPromptChipText, { color: colors.text }]}>{p.title}</Text>
+                  <Ionicons name="arrow-forward-circle" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Input Box Card */}
+          <View style={[styles.aiInputCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TextInput
+              style={[styles.aiTextInput, { color: colors.text }]}
+              placeholder={placeholderText}
+              placeholderTextColor={colors.textLight}
+              value={aiWorkspaceQuery}
+              onChangeText={setAiWorkspaceQuery}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            <View style={styles.aiInputActionsRow}>
+              {aiWorkspaceQuery.length > 0 ? (
+                <TouchableOpacity
+                  onPress={() => setAiWorkspaceQuery('')}
+                  style={{ padding: 6 }}
+                >
+                  <Ionicons name="close-circle" size={18} color={colors.textLight} />
+                </TouchableOpacity>
+              ) : (
+                <View />
+              )}
+              <TouchableOpacity
+                style={[
+                  styles.aiSubmitButton,
+                  { backgroundColor: colors.primary, opacity: (!aiWorkspaceQuery.trim() || aiWorkspaceLoading) ? 0.6 : 1 },
+                ]}
+                onPress={() => handleAIWorkspaceSubmit()}
+                disabled={!aiWorkspaceQuery.trim() || aiWorkspaceLoading}
+              >
+                {aiWorkspaceLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="sparkles" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.aiSubmitButtonText}>
+                      {aiWorkspaceMode === 'judgment' ? 'Search Precedents' : 'Analyze with AI'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Loading Indicator */}
+          {aiWorkspaceLoading && (
+            <View style={[styles.aiLoadingCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: Spacing.sm }} />
+              <Text style={[styles.aiLoadingTitle, { color: colors.text }]}>Processing Legal Analysis...</Text>
+              <Text style={[styles.aiLoadingSubtitle, { color: colors.textSecondary }]}>
+                Scanning Bharatiya Sanhitas (BNS, BNSS, BSA), statutory provisions, and judicial precedents.
+              </Text>
+            </View>
+          )}
+
+          {/* Error Banner */}
+          {aiWorkspaceError && !aiWorkspaceLoading && (
+            <View style={[styles.aiErrorCard, { backgroundColor: 'rgba(239, 68, 68, 0.08)', borderColor: '#EF4444' }]}>
+              <Ionicons name="alert-circle" size={20} color="#EF4444" style={{ marginRight: Spacing.sm }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#EF4444', fontWeight: '700', fontSize: FontSize.sm }}>Request Error</Text>
+                <Text style={{ color: colors.text, fontSize: FontSize.xs, marginTop: 2 }}>{aiWorkspaceError}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.aiRetryButton, { backgroundColor: '#EF4444' }]}
+                onPress={() => handleAIWorkspaceSubmit()}
+              >
+                <Text style={{ color: '#FFFFFF', fontSize: FontSize.xxs, fontWeight: '700' }}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Results Display */}
+          {aiWorkspaceResult && !aiWorkspaceLoading && (
+            <View style={{ marginTop: Spacing.md }}>
+              {/* Suggested Sections (Case Strategy Mode) */}
+              {aiWorkspaceResult.suggestedSections && aiWorkspaceResult.suggestedSections.length > 0 && (
+                <View style={[styles.aiResultSectionBlock, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <View style={styles.aiResultSectionHeader}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+                    <Text style={[styles.aiResultSectionHeading, { color: colors.text }]}>Applicable Statutory Provisions</Text>
+                  </View>
+                  <View style={styles.aiSectionsBadgeRow}>
+                    {aiWorkspaceResult.suggestedSections.map((sec, sIdx) => (
+                      <View key={sIdx} style={[styles.aiSectionPillBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                        <Ionicons name="bookmark" size={12} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={[styles.aiSectionPillText, { color: colors.primary }]}>{sec}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {aiWorkspaceResult.details && aiWorkspaceResult.details.length > 0 && (
+                    <View style={{ marginTop: Spacing.sm, gap: 8 }}>
+                      {aiWorkspaceResult.details.map((item: any, dIdx: number) => (
+                        <View key={dIdx} style={[styles.aiDetailRowCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={[styles.aiDetailSectionName, { color: colors.primary }]}>{item.section}</Text>
+                            <Text style={[styles.aiDetailActTag, { color: colors.textSecondary }]}>{item.act}</Text>
+                          </View>
+                          <Text style={[styles.aiDetailTitleText, { color: colors.text }]}>{item.title}</Text>
+                          <Text style={[styles.aiDetailReasonText, { color: colors.textSecondary }]}>{item.reason}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Matched Judgments (Judgment Mode) */}
+              {aiWorkspaceResult.judgments && aiWorkspaceResult.judgments.length > 0 && (
+                <View style={[styles.aiResultSectionBlock, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: Spacing.md }]}>
+                  <View style={styles.aiResultSectionHeader}>
+                    <Ionicons name="hammer-outline" size={18} color="#10B981" />
+                    <Text style={[styles.aiResultSectionHeading, { color: colors.text }]}>
+                      Precedents in Court Registry ({aiWorkspaceResult.judgments.length})
+                    </Text>
+                  </View>
+                  <View style={{ gap: 10, marginTop: Spacing.xs }}>
+                    {aiWorkspaceResult.judgments.map((jm: any) => (
+                      <View key={jm.id} style={[styles.aiJudgmentCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <View style={{ flex: 1, marginRight: Spacing.sm }}>
+                            <Text style={[styles.aiJudgmentTitleText, { color: colors.text }]}>{jm.case_title}</Text>
+                            <Text style={[styles.aiJudgmentCitation, { color: colors.primary }]}>{jm.citation || jm.case_number}</Text>
+                          </View>
+                          <View style={[styles.aiCourtBadge, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#3B82F6' }}>{jm.court_name}</Text>
+                          </View>
+                        </View>
+                        {jm.bench && (
+                          <Text style={[styles.aiJudgmentBenchText, { color: colors.textSecondary }]}>Bench: {jm.bench}</Text>
+                        )}
+                        {jm.summary && (
+                          <Text style={[styles.aiJudgmentSummaryText, { color: colors.text }]}>{jm.summary}</Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* AI Comprehensive Answer Card */}
+              <View style={[styles.aiAnswerCard, { backgroundColor: colors.surface, borderColor: colors.border, marginTop: Spacing.md }]}>
+                <View style={styles.aiAnswerCardHeader}>
+                  <View style={[styles.aiAnswerBadge, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name="sparkles" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                    <Text style={[styles.aiAnswerBadgeText, { color: colors.primary }]}>AI Legal Intelligence</Text>
+                  </View>
+                  <TouchableOpacity onPress={handleShareAIResult} style={styles.aiShareIconBtn}>
+                    <Ionicons name="share-social-outline" size={18} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={{ marginTop: Spacing.sm }}>
+                  <MarkdownRenderer content={aiWorkspaceResult.answer} color={colors.text} />
+                </View>
+
+                {/* Sources & References */}
+                {aiWorkspaceResult.sources && aiWorkspaceResult.sources.length > 0 && (
+                  <View style={[styles.aiSourcesContainer, { borderTopColor: colors.border }]}>
+                    <Text style={[styles.aiSourcesTitle, { color: colors.textSecondary }]}>
+                      <Ionicons name="library-outline" size={12} color={colors.primary} /> Statutory References & Authorities:
+                    </Text>
+                    <View style={{ gap: 6, marginTop: 4 }}>
+                      {aiWorkspaceResult.sources.map((src: any, sIndex: number) => (
+                        <View key={sIndex} style={[styles.aiSourceItem, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                          <Text style={[styles.aiSourceHeading, { color: colors.primary }]}>
+                            {src.act} {src.section ? `• Sec. ${src.section}` : ''} {src.title ? `(${src.title})` : ''}
+                          </Text>
+                          {src.text_snippet && (
+                            <Text style={[styles.aiSourceSnippet, { color: colors.textSecondary }]} numberOfLines={2}>
+                              {src.text_snippet}
+                            </Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {/* Action Controls */}
+                <View style={[styles.aiBottomActionRow, { borderTopColor: colors.border }]}>
+                  <TouchableOpacity
+                    style={[styles.aiActionOutlineBtn, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}
+                    onPress={handleShareAIResult}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={colors.text} style={{ marginRight: 6 }} />
+                    <Text style={[styles.aiActionOutlineBtnText, { color: colors.text }]}>Share / Copy</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.aiActionFilledBtn, { backgroundColor: colors.primary }]}
+                    onPress={() => router.push('/(tabs)/fir/new')}
+                  >
+                    <Ionicons name="document-text-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.aiActionFilledBtnText}>Draft FIR</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   };
@@ -881,8 +1441,9 @@ export default function HomeScreen() {
               style={[styles.aiToolCard, { backgroundColor: colors.surface }]}
               onPress={() => {
                 setAiTitle('Judgment AI');
-                setAiSubtitle('AI Precedent & Judgment Search');
-                setAiDescription('Search landmark Indian judicial precedents by citation, court name, or keywords. This module will integrate with RAG search in the next phase.');
+                setAiSubtitle('AI Precedent & Landmark Rulings Search');
+                setAiDescription('Search landmark Indian judicial precedents by citation, court name, or keywords.');
+                setAiWorkspaceMode('judgment');
                 setScreenState('ai-helper');
               }}
             >
@@ -896,8 +1457,9 @@ export default function HomeScreen() {
               style={[styles.aiToolCard, { backgroundColor: colors.surface }]}
               onPress={() => {
                 setAiTitle('Legal AI');
-                setAiSubtitle('AI Code Comparison & Statutes Assistant');
-                setAiDescription('Bidirectional mapping and comparative analysis between old acts and new Sanhitas. This module will support dynamic LLM reasoning.');
+                setAiSubtitle('Case Strategy & Code Comparison');
+                setAiDescription('Statutory recommendations and legal defense strategy across BNS and IPC.');
+                setAiWorkspaceMode('strategy');
                 setScreenState('ai-helper');
               }}
             >
@@ -930,13 +1492,27 @@ export default function HomeScreen() {
                 action: () => {
                   setAiTitle('Legal Advice');
                   setAiSubtitle('Legal Query & Advice Assistant');
-                  setAiDescription('Receive guidance on legal issues, FIR drafting, and relevant sections. This module will use LLM-based chat interactions.');
+                  setAiDescription('Receive guidance on legal issues, FIR drafting, and relevant sections.');
+                  setAiWorkspaceMode('advice');
                   setScreenState('ai-helper');
                 }
               },
               { label: 'Drafting', icon: 'create-outline', route: '/(tabs)/fir' },
-              { label: 'Daily Poll', icon: 'stats-chart-outline', action: () => Alert.alert('Poll', 'Today\'s Poll: Will the new BNS code improve speed of investigation? Vote in dashboard.') },
-              { label: 'Play Quiz', icon: 'ribbon-outline', action: () => Alert.alert('Legal Quiz', 'Start our 5-minute legal quiz on new IPC/BNS mappings!') },
+              {
+                label: 'Daily Poll',
+                icon: 'stats-chart-outline',
+                action: () => {
+                  setIsPollModalOpen(true);
+                }
+              },
+              {
+                label: 'Play Quiz',
+                icon: 'ribbon-outline',
+                action: () => {
+                  resetQuiz();
+                  setIsQuizModalOpen(true);
+                }
+              },
             ].map((item, idx) => (
               <TouchableOpacity
                 key={idx}
@@ -1232,38 +1808,596 @@ export default function HomeScreen() {
       <Modal
         visible={isDictionaryOpen}
         transparent={true}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsDictionaryOpen(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Law Dictionary</Text>
-              <TouchableOpacity onPress={() => { setIsDictionaryOpen(false); setDictQuery(''); setDictResult(null); }}>
+          <View style={[styles.dictModalCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.dictModalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="book" size={22} color={colors.primary} />
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Law Dictionary</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setIsDictionaryOpen(false);
+                  setDictQuery('');
+                  setSelectedTerm(null);
+                }}
+                style={{ padding: 4 }}
+              >
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
 
-            <TextInput
-              placeholder="Enter legal term (e.g. bail, cognizable)..."
-              placeholderTextColor={colors.textLight}
-              value={dictQuery}
-              onChangeText={setDictQuery}
-              style={[styles.dictInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}
-            />
-
-            <Button
-              title="Look Up"
-              onPress={handleSearchDictionary}
-              fullWidth
-              style={{ marginVertical: 10 }}
-            />
-
-            {dictResult && (
-              <View style={[styles.dictResultBox, { backgroundColor: colors.primaryLight }]}>
-                <Text style={[styles.dictResultText, { color: colors.text }]}>{dictResult}</Text>
+            {/* Search Input Bar */}
+            <View style={styles.dictSearchRow}>
+              <View style={[styles.dictSearchInputContainer, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                <Ionicons name="search" size={18} color={colors.textLight} style={{ marginRight: 8 }} />
+                <TextInput
+                  placeholder="Search legal terms (e.g. bail, remand)..."
+                  placeholderTextColor={colors.textLight}
+                  value={dictQuery}
+                  onChangeText={setDictQuery}
+                  onSubmitEditing={handleSearchDictionary}
+                  returnKeyType="search"
+                  style={[styles.dictTextInput, { color: colors.text }]}
+                />
+                {dictQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => { setDictQuery(''); fetchDictionaryTerms('', dictCategory); }}>
+                    <Ionicons name="close-circle" size={18} color={colors.textLight} />
+                  </TouchableOpacity>
+                )}
               </View>
+              <TouchableOpacity
+                style={[styles.dictSearchButton, { backgroundColor: colors.primary }]}
+                onPress={handleSearchDictionary}
+              >
+                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Category Filter Pills */}
+            <View style={{ height: 36, marginVertical: 8 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
+                {['All', 'Criminal Procedure', 'Bail & Custody', 'Evidence Law', 'Substantive Law', 'Constitutional Law', 'FIR & Investigation'].map((cat) => {
+                  const isActive = dictCategory === cat;
+                  return (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setDictCategory(cat)}
+                      style={[
+                        styles.dictCategoryPill,
+                        {
+                          backgroundColor: isActive ? colors.primary : colors.surfaceAlt,
+                          borderColor: isActive ? colors.primary : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.dictCategoryText,
+                          { color: isActive ? '#FFFFFF' : colors.textSecondary },
+                        ]}
+                      >
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Terms List & Detail View */}
+            {isDictLoading ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={{ marginTop: 8, color: colors.textSecondary, fontSize: FontSize.xs }}>Searching legal repository...</Text>
+              </View>
+            ) : dictItems.length === 0 ? (
+              <View style={{ paddingVertical: 36, alignItems: 'center' }}>
+                <Ionicons name="alert-circle-outline" size={40} color={colors.textLight} />
+                <Text style={{ marginTop: 8, color: colors.text, fontWeight: '600' }}>No terms found</Text>
+                <Text style={{ color: colors.textSecondary, fontSize: FontSize.xs, textAlign: 'center', marginTop: 4 }}>
+                  Try keywords like "bail", "cognizable", "remand", or select "All".
+                </Text>
+              </View>
+            ) : (
+              <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+                {/* Horizontal chips for quick term selection */}
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                  {dictItems.map((item) => {
+                    const isSelected = selectedTerm?.id === item.id;
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        onPress={() => setSelectedTerm(item)}
+                        style={[
+                          styles.dictTermChip,
+                          {
+                            backgroundColor: isSelected ? colors.primaryLight : colors.surfaceAlt,
+                            borderColor: isSelected ? colors.primary : colors.border,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.dictTermChipText,
+                            { color: isSelected ? colors.primary : colors.text, fontWeight: isSelected ? '700' : '500' },
+                          ]}
+                        >
+                          {item.term}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Selected Term Detail Card */}
+                {selectedTerm && (
+                  <View style={[styles.dictDetailCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <Text style={[styles.dictDetailTermTitle, { color: colors.text }]}>{selectedTerm.term}</Text>
+                      <View style={[styles.dictBadge, { backgroundColor: colors.primaryLight }]}>
+                        <Text style={[styles.dictBadgeText, { color: colors.primary }]}>{selectedTerm.category}</Text>
+                      </View>
+                    </View>
+
+                    {/* Official Definition */}
+                    <Text style={[styles.dictSectionHeader, { color: colors.textSecondary }]}>LEGAL DEFINITION</Text>
+                    <Text style={[styles.dictDefinitionText, { color: colors.text }]}>{selectedTerm.definition}</Text>
+
+                    {/* In Simple Words */}
+                    <View style={[styles.dictSimpleBox, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderColor: colors.border }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <Ionicons name="bulb-outline" size={16} color={colors.primary} />
+                        <Text style={[styles.dictSimpleHeader, { color: colors.primary }]}>In Simple Words</Text>
+                      </View>
+                      <Text style={[styles.dictSimpleText, { color: colors.text }]}>{selectedTerm.simple_explanation}</Text>
+                    </View>
+
+                    {/* Related Provisions */}
+                    {selectedTerm.related_provisions && selectedTerm.related_provisions.length > 0 && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={[styles.dictSectionHeader, { color: colors.textSecondary }]}>STATUTORY REFERENCES</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                          {selectedTerm.related_provisions.map((prov, idx) => (
+                            <View key={idx} style={[styles.dictProvisionPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                              <Ionicons name="document-text-outline" size={12} color={colors.primary} />
+                              <Text style={[styles.dictProvisionText, { color: colors.text }]}>{prov}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Examples */}
+                    {selectedTerm.examples && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={[styles.dictSectionHeader, { color: colors.textSecondary }]}>PRACTICAL APPLICATION</Text>
+                        <Text style={[styles.dictExampleText, { color: colors.textSecondary }]}>{selectedTerm.examples}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </ScrollView>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Daily Poll Modal */}
+      <Modal
+        visible={isPollModalOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsPollModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.pollModalCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.pollHeader}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="stats-chart" size={18} color={colors.primary} />
+                  <Text style={{ fontSize: FontSize.xxs, fontWeight: '800', color: colors.primary, letterSpacing: 0.8 }}>
+                    COMMUNITY LEGAL POLL
+                  </Text>
+                </View>
+                <Text style={{ fontSize: FontSize.xs, color: colors.textSecondary, marginTop: 2 }}>
+                  Today's Debate • Bharatiya Nagarik Suraksha Sanhita
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsPollModalOpen(false)} style={{ padding: 4 }}>
+                <Ionicons name="close" size={22} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={[styles.pollQuestionText, { color: colors.text }]}>
+                Will mandatory audio-video electronic recording of search and seizure under Section 105 BNSS accelerate convictions in criminal trials?
+              </Text>
+
+              {/* Options List */}
+              {[
+                'Significantly improves transparency and curbs fabricated recoveries',
+                'Agree in principle, but police forensic infrastructure needs urgent expansion',
+                'Disagree: May cause procedural technicalities and trial delays in urgent raids',
+                'Neutral: Awaiting empirical High Court trial data and digital guidelines',
+              ].map((optionText, optIdx) => {
+                const totalVotes = pollVoteCounts.reduce((a, b) => a + b, 0);
+                const count = pollVoteCounts[optIdx] || 0;
+                const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                const isUserChoice = userPollVote === optIdx;
+                const isSelectedForVote = pollSelectedOption === optIdx;
+
+                return (
+                  <TouchableOpacity
+                    key={optIdx}
+                    disabled={userPollVote !== null}
+                    onPress={() => setPollSelectedOption(optIdx)}
+                    style={[
+                      styles.pollOptionCard,
+                      {
+                        backgroundColor: isUserChoice
+                          ? 'rgba(16, 185, 129, 0.08)'
+                          : isSelectedForVote
+                          ? colors.primaryLight
+                          : colors.surfaceAlt,
+                        borderColor: isUserChoice
+                          ? '#10B981'
+                          : isSelectedForVote
+                          ? colors.primary
+                          : colors.border,
+                      },
+                    ]}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                        <Ionicons
+                          name={
+                            isUserChoice
+                              ? 'checkmark-circle'
+                              : isSelectedForVote
+                              ? 'radio-button-on'
+                              : userPollVote !== null
+                              ? 'radio-button-off'
+                              : 'ellipse-outline'
+                          }
+                          size={18}
+                          color={isUserChoice ? '#10B981' : isSelectedForVote ? colors.primary : colors.textLight}
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={{ fontSize: FontSize.xs, color: colors.text, flex: 1, fontWeight: isUserChoice ? '700' : '500' }}>
+                          {optionText}
+                        </Text>
+                      </View>
+
+                      {userPollVote !== null && (
+                        <Text style={{ fontSize: FontSize.xs, fontWeight: '800', color: isUserChoice ? '#10B981' : colors.primary }}>
+                          {pct}%
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Animated percentage bar if voted */}
+                    {userPollVote !== null && (
+                      <View style={styles.pollBarContainer}>
+                        <View
+                          style={[
+                            styles.pollBarFill,
+                            {
+                              width: `${pct}%`,
+                              backgroundColor: isUserChoice ? '#10B981' : colors.primary,
+                            },
+                          ]}
+                        />
+                      </View>
+                    )}
+
+                    {userPollVote !== null && isUserChoice && (
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#10B981', marginTop: 2 }}>
+                        ✓ YOUR VOTE
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* Total votes */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginVertical: Spacing.sm }}>
+                <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
+                <Text style={{ fontSize: FontSize.xxs, color: colors.textSecondary }}>
+                  {pollVoteCounts.reduce((a, b) => a + b, 0).toLocaleString()} Verified Legal Practitioners Voted
+                </Text>
+              </View>
+
+              {/* Legal Context Card */}
+              <View style={[styles.pollInsightCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
+                  <Text style={{ fontSize: FontSize.xs, fontWeight: '700', color: colors.text }}>
+                    Statutory Context: Section 105 BNSS, 2023
+                  </Text>
+                </View>
+                <Text style={{ fontSize: FontSize.xxs, color: colors.textSecondary, lineHeight: 16 }}>
+                  Section 105 of the Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 mandates that search of a place or seizure of any property shall be recorded through audio-video electronic means (e.g. mobile phone). The digital evidence must be forwarded without delay to the Judicial Magistrate to safeguard against trial challenges.
+                </Text>
+              </View>
+
+              {/* Action Buttons */}
+              <View style={{ marginTop: Spacing.xs, marginBottom: Spacing.sm }}>
+                {userPollVote === null ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.aiSubmitButton,
+                      {
+                        backgroundColor: colors.primary,
+                        justifyContent: 'center',
+                        opacity: pollSelectedOption === null ? 0.5 : 1,
+                      },
+                    ]}
+                    disabled={pollSelectedOption === null}
+                    onPress={() => {
+                      if (pollSelectedOption !== null) handleVotePoll(pollSelectedOption);
+                    }}
+                  >
+                    <Text style={styles.aiSubmitButtonText}>Submit Vote</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <TouchableOpacity
+                      style={[styles.aiActionOutlineBtn, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}
+                      onPress={() => {
+                        setUserPollVote(null);
+                        setPollSelectedOption(null);
+                      }}
+                    >
+                      <Text style={[styles.aiActionOutlineBtnText, { color: colors.textSecondary }]}>Change Vote</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.aiActionFilledBtn, { backgroundColor: colors.primary }]}
+                      onPress={() => setIsPollModalOpen(false)}
+                    >
+                      <Text style={styles.aiActionFilledBtnText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Legal Mastery Quiz Modal */}
+      <Modal
+        visible={isQuizModalOpen}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsQuizModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.quizModalCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.pollHeader}>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="ribbon" size={18} color={colors.primary} />
+                  <Text style={{ fontSize: FontSize.xxs, fontWeight: '800', color: colors.primary, letterSpacing: 0.8 }}>
+                    SANHITA & STATUTES MASTERY QUIZ
+                  </Text>
+                </View>
+                <Text style={{ fontSize: FontSize.xs, color: colors.textSecondary, marginTop: 2 }}>
+                  Test your knowledge on BNS, BNSS, BSA & Indian Law
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsQuizModalOpen(false)} style={{ padding: 4 }}>
+                <Ionicons name="close" size={22} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {!quizFinished ? (
+                <>
+                  {/* Progress & Score Bar */}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      {QUIZ_QUESTIONS.map((_, dotIdx) => (
+                        <View
+                          key={dotIdx}
+                          style={[
+                            styles.quizStepDot,
+                            {
+                              backgroundColor:
+                                dotIdx === quizIndex
+                                  ? colors.primary
+                                  : dotIdx < quizIndex
+                                  ? '#10B981'
+                                  : colors.border,
+                            },
+                          ]}
+                        />
+                      ))}
+                      <Text style={{ fontSize: FontSize.xxs, fontWeight: '700', color: colors.textSecondary, marginLeft: 4 }}>
+                        Question {quizIndex + 1} of {QUIZ_QUESTIONS.length}
+                      </Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Ionicons name="star" size={14} color="#F59E0B" />
+                      <Text style={{ fontSize: FontSize.xs, fontWeight: '800', color: colors.text }}>
+                        Score: {quizScore} / {QUIZ_QUESTIONS.length}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Question Text */}
+                  <Text style={[styles.pollQuestionText, { color: colors.text, fontSize: FontSize.md }]}>
+                    {QUIZ_QUESTIONS[quizIndex].question}
+                  </Text>
+
+                  {/* Options List */}
+                  {QUIZ_QUESTIONS[quizIndex].options.map((optText, optIdx) => {
+                    const isCorrect = optIdx === QUIZ_QUESTIONS[quizIndex].correctIndex;
+                    const isSelected = optIdx === quizSelectedOption;
+
+                    let btnBg = colors.surfaceAlt;
+                    let btnBorder = colors.border;
+                    let letterColor = colors.textSecondary;
+
+                    if (quizIsAnswered) {
+                      if (isCorrect) {
+                        btnBg = 'rgba(16, 185, 129, 0.12)';
+                        btnBorder = '#10B981';
+                        letterColor = '#10B981';
+                      } else if (isSelected && !isCorrect) {
+                        btnBg = 'rgba(239, 68, 68, 0.12)';
+                        btnBorder = '#EF4444';
+                        letterColor = '#EF4444';
+                      }
+                    }
+
+                    return (
+                      <TouchableOpacity
+                        key={optIdx}
+                        disabled={quizIsAnswered}
+                        onPress={() => handleSelectQuizOption(optIdx)}
+                        style={[styles.quizOptionBtn, { backgroundColor: btnBg, borderColor: btnBorder }]}
+                      >
+                        <View
+                          style={[
+                            styles.quizOptionLetterBox,
+                            {
+                              backgroundColor:
+                                quizIsAnswered && isCorrect
+                                  ? '#10B981'
+                                  : quizIsAnswered && isSelected
+                                  ? '#EF4444'
+                                  : colors.surface,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FontSize.xs,
+                              fontWeight: '800',
+                              color:
+                                quizIsAnswered && (isCorrect || isSelected)
+                                  ? '#FFFFFF'
+                                  : letterColor,
+                            }}
+                          >
+                            {String.fromCharCode(65 + optIdx)}
+                          </Text>
+                        </View>
+                        <Text style={{ flex: 1, fontSize: FontSize.xs, color: colors.text, fontWeight: isCorrect && quizIsAnswered ? '700' : '500' }}>
+                          {optText}
+                        </Text>
+                        {quizIsAnswered && isCorrect && (
+                          <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                        )}
+                        {quizIsAnswered && isSelected && !isCorrect && (
+                          <Ionicons name="close-circle" size={20} color="#EF4444" />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                  {/* Statutory Explanation Card */}
+                  {quizIsAnswered && (
+                    <View style={[styles.quizExplanationCard, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <Ionicons name="bulb-outline" size={16} color="#F59E0B" />
+                        <Text style={{ fontSize: FontSize.xs, fontWeight: '700', color: colors.text }}>
+                          Statutory Rationale
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: FontSize.xxs, color: colors.textSecondary, lineHeight: 16 }}>
+                        {QUIZ_QUESTIONS[quizIndex].explanation}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Next Question / Finish Button */}
+                  {quizIsAnswered && (
+                    <TouchableOpacity
+                      style={[styles.aiActionFilledBtn, { backgroundColor: colors.primary, marginTop: Spacing.xs, paddingVertical: 12 }]}
+                      onPress={handleNextQuizQuestion}
+                    >
+                      <Text style={styles.aiActionFilledBtnText}>
+                        {quizIndex < QUIZ_QUESTIONS.length - 1 ? 'Next Question →' : 'See Final Results 🎉'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              ) : (
+                /* Quiz Completion View */
+                <View style={{ alignItems: 'center', paddingVertical: Spacing.lg }}>
+                  <View
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: 36,
+                      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: Spacing.md,
+                    }}
+                  >
+                    <Ionicons name="trophy" size={38} color="#F59E0B" />
+                  </View>
+
+                  <Text style={{ fontSize: FontSize.lg, fontWeight: '800', color: colors.text, textAlign: 'center' }}>
+                    Quiz Completed!
+                  </Text>
+                  <Text style={{ fontSize: FontSize.sm, color: colors.textSecondary, marginTop: 4 }}>
+                    Your Score: {quizScore} out of {QUIZ_QUESTIONS.length} ({Math.round((quizScore / QUIZ_QUESTIONS.length) * 100)}%)
+                  </Text>
+
+                  {/* Rank Badge */}
+                  <View
+                    style={{
+                      paddingHorizontal: Spacing.md,
+                      paddingVertical: 6,
+                      borderRadius: BorderRadius.full,
+                      backgroundColor: colors.primaryLight,
+                      marginTop: Spacing.md,
+                      marginBottom: Spacing.lg,
+                    }}
+                  >
+                    <Text style={{ fontSize: FontSize.xs, fontWeight: '800', color: colors.primary }}>
+                      {quizScore === 5
+                        ? '🏆 Supreme Jurist • Perfect Sanhita Score!'
+                        : quizScore >= 4
+                        ? '⚖️ Senior Advocate • Excellent Mastery!'
+                        : quizScore >= 3
+                        ? '📚 Legal Scholar • Good Foundation!'
+                        : '🎓 Law Apprentice • Keep Exploring Sanhitas!'}
+                    </Text>
+                  </View>
+
+                  <Text style={{ fontSize: FontSize.xs, color: colors.textSecondary, textAlign: 'center', lineHeight: 18, marginBottom: Spacing.lg, paddingHorizontal: Spacing.md }}>
+                    Keep up to date with the latest transitions across the Bharatiya Nyaya Sanhita (BNS), Bharatiya Nagarik Suraksha Sanhita (BNSS), and Bharatiya Sakshya Adhiniyam (BSA).
+                  </Text>
+
+                  <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
+                    <TouchableOpacity
+                      style={[styles.aiActionOutlineBtn, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}
+                      onPress={resetQuiz}
+                    >
+                      <Ionicons name="reload-outline" size={16} color={colors.text} style={{ marginRight: 6 }} />
+                      <Text style={[styles.aiActionOutlineBtnText, { color: colors.text }]}>Play Again</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.aiActionFilledBtn, { backgroundColor: colors.primary }]}
+                      onPress={() => setIsQuizModalOpen(false)}
+                    >
+                      <Text style={styles.aiActionFilledBtnText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1952,4 +3086,515 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.xl,
   },
+
+  // Law Dictionary Modal Styles
+  dictModalCard: {
+    width: '100%',
+    maxWidth: 580,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    ...Shadow.lg,
+  },
+  dictModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  dictSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  dictSearchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
+  },
+  dictTextInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: FontSize.sm,
+  },
+  dictSearchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dictCategoryPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dictCategoryText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  dictTermChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  dictTermChipText: {
+    fontSize: FontSize.xs,
+  },
+  dictDetailCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginTop: 4,
+  },
+  dictDetailTermTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '800',
+  },
+  dictBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  dictBadgeText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  dictSectionHeader: {
+    fontSize: FontSize.xxs,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  dictDefinitionText: {
+    fontSize: FontSize.sm,
+    lineHeight: 20,
+    fontWeight: '400',
+  },
+  dictSimpleBox: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.sm,
+    marginTop: 8,
+  },
+  dictSimpleHeader: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  dictSimpleText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+  },
+  dictProvisionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  dictProvisionText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '600',
+  },
+  dictExampleText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+
+  // AI Suite Workspace styles
+  aiModeTabsBar: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+  },
+  aiModeTabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  aiModeTabButtonText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  aiWorkspaceScrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxxl * 2,
+  },
+  aiModeBannerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  aiModeBannerIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  aiModeBannerTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  aiModeBannerSubtitle: {
+    fontSize: FontSize.xxs,
+    lineHeight: 16,
+  },
+  aiSectionSmallTitle: {
+    fontSize: FontSize.xxs,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  aiPromptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 7,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  aiPromptChipText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  aiInputCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  aiTextInput: {
+    fontSize: FontSize.sm,
+    lineHeight: 20,
+    minHeight: 80,
+    padding: 0,
+    marginBottom: Spacing.sm,
+  },
+  aiInputActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(150,150,150,0.15)',
+    paddingTop: Spacing.sm,
+  },
+  aiSubmitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 9,
+    borderRadius: BorderRadius.md,
+  },
+  aiSubmitButtonText: {
+    color: '#FFFFFF',
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  aiLoadingCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  aiLoadingTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  aiLoadingSubtitle: {
+    fontSize: FontSize.xs,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  aiErrorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  aiRetryButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
+  },
+  aiResultSectionBlock: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  aiResultSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  aiResultSectionHeading: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+  },
+  aiSectionsBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: Spacing.xs,
+  },
+  aiSectionPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  aiSectionPillText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  aiDetailRowCard: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.sm,
+  },
+  aiDetailSectionName: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+  },
+  aiDetailActTag: {
+    fontSize: FontSize.xxs,
+    fontWeight: '600',
+  },
+  aiDetailTitleText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  aiDetailReasonText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  aiJudgmentCard: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+  },
+  aiJudgmentTitleText: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+  },
+  aiJudgmentCitation: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  aiCourtBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+  },
+  aiJudgmentBenchText: {
+    fontSize: FontSize.xxs,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  aiJudgmentSummaryText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    marginTop: 6,
+  },
+  aiAnswerCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+  },
+  aiAnswerCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  aiAnswerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  aiAnswerBadgeText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  aiShareIconBtn: {
+    padding: 6,
+  },
+  aiSourcesContainer: {
+    borderTopWidth: 1,
+    paddingTop: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  aiSourcesTitle: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  aiSourceItem: {
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    padding: Spacing.sm,
+  },
+  aiSourceHeading: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  aiSourceSnippet: {
+    fontSize: FontSize.xxs,
+    lineHeight: 16,
+  },
+  aiBottomActionRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    borderTopWidth: 1,
+    paddingTop: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  aiActionOutlineBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  aiActionOutlineBtnText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  aiActionFilledBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: BorderRadius.md,
+  },
+  aiActionFilledBtnText: {
+    color: '#FFFFFF',
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+
+  // Daily Poll & Quiz Modal Styles
+  pollModalCard: {
+    width: '92%',
+    maxWidth: 500,
+    maxHeight: '90%',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+  },
+  pollHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  pollQuestionText: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    lineHeight: 22,
+    marginBottom: Spacing.md,
+  },
+  pollOptionCard: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  pollBarContainer: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(150,150,150,0.15)',
+    overflow: 'hidden',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  pollBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  pollInsightCard: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  quizModalCard: {
+    width: '92%',
+    maxWidth: 520,
+    maxHeight: '90%',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+  },
+  quizStepDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  quizOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+  },
+  quizOptionLetterBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  quizExplanationCard: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
 });
+

@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 
 import api from '../../lib/api';
+import { naturalCompareSections } from '../../lib/sort';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -31,7 +32,9 @@ export default function ConverterScreen() {
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
     debounceRef.current = setTimeout(() => {
       setDebouncedQuery(text.trim());
     }, 400);
@@ -44,7 +47,12 @@ export default function ConverterScreen() {
       const res = await api.get('/compare', {
         params: { q: debouncedQuery, direction },
       });
-      return res.data as SectionMapping[];
+      const data = res.data as SectionMapping[];
+      return [...data].sort((a, b) => {
+        const aSec = direction === 'old_to_new' ? a.old_section : a.new_section;
+        const bSec = direction === 'old_to_new' ? b.old_section : b.new_section;
+        return naturalCompareSections(aSec, bSec);
+      });
     },
     enabled: debouncedQuery.length > 0,
   });

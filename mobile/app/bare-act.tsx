@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 
 import api from '../lib/api';
+import { naturalCompareSections } from '../lib/sort';
 import Header from '../components/ui/Header';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -58,19 +59,27 @@ export default function BareActScreen() {
 
   const filteredSections = React.useMemo(() => {
     if (!sections) return [];
-    if (!searchQuery.trim()) return sections;
+    let list = sections;
 
-    const query = searchQuery.toLowerCase().trim();
-    return sections.filter((item) => {
-      const sectionNum = isNewAct ? item.new_section : item.old_section;
-      const title = isNewAct ? item.old_title : item.old_title;
-      const text = isNewAct ? item.new_text : item.old_text;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      list = sections.filter((item) => {
+        const sectionNum = isNewAct ? item.new_section : item.old_section;
+        const title = isNewAct ? item.new_title : item.old_title;
+        const text = isNewAct ? item.new_text : item.old_text;
 
-      return (
-        sectionNum.toLowerCase().includes(query) ||
-        (title && title.toLowerCase().includes(query)) ||
-        (text && text.toLowerCase().includes(query))
-      );
+        return (
+          sectionNum.toLowerCase().includes(query) ||
+          (title && title.toLowerCase().includes(query)) ||
+          (text && text.toLowerCase().includes(query))
+        );
+      });
+    }
+
+    return [...list].sort((a, b) => {
+      const aSec = isNewAct ? a.new_section : a.old_section;
+      const bSec = isNewAct ? b.new_section : b.old_section;
+      return naturalCompareSections(aSec, bSec);
     });
   }, [sections, searchQuery, isNewAct]);
 

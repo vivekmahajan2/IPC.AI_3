@@ -31,7 +31,10 @@ async def get_current_user(
             detail="Invalid token payload",
         )
 
-    result = await db.execute(select(User).where(User.id == int(user_id)))
+    if str(user_id).isdigit():
+        result = await db.execute(select(User).where(User.id == int(user_id)))
+    else:
+        result = await db.execute(select(User).where(User.email == str(user_id)))
     user = result.scalar_one_or_none()
 
     if user is None:

@@ -5,6 +5,7 @@
 import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 import { FIRDraft, IncidentDetails, SectionMapping } from '../types';
+import { naturalCompareSections } from './sort';
 
 // Web fallback: use in-memory storage
 const isWeb = Platform.OS === 'web';
@@ -217,7 +218,7 @@ export function searchOfflineMappings(
     [search, search, search, search, search, search]
   ) as any[];
 
-  return rows.map((row) => ({
+  const list: SectionMapping[] = rows.map((row) => ({
     id: row.id,
     old_act: row.old_act,
     old_section: row.old_section,
@@ -230,6 +231,14 @@ export function searchOfflineMappings(
     mapping_notes: row.mapping_notes,
     is_identical: row.is_identical === 1,
   }));
+
+  list.sort((a, b) => {
+    const aSec = direction === 'old_to_new' ? a.old_section : a.new_section;
+    const bSec = direction === 'old_to_new' ? b.old_section : b.new_section;
+    return naturalCompareSections(aSec, bSec);
+  });
+
+  return list;
 }
 
 export function getAllCachedMappings(): SectionMapping[] {

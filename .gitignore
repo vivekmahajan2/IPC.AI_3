@@ -1,5 +1,26 @@
-# Python
+# ==============================================================================
+# IPC.AI Monorepo .gitignore
+# Covers Python FastAPI Backend, React Native Expo Mobile, and Root Workspace
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Environment Variables & Secrets (NEVER COMMIT SENSITIVE KEYS)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+*.env.*
+backend/.env
+backend/.env.*
+mobile/.env
+mobile/.env.*
+!**/.env.example
+
+# ------------------------------------------------------------------------------
+# Python & Backend Artifacts
+# ------------------------------------------------------------------------------
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -10,9 +31,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-/lib/
-/lib64/
-!mobile/lib/
 parts/
 sdist/
 var/
@@ -23,35 +41,129 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual Environments
+# Python Virtual Environments
 venv/
+**/venv/
+.venv/
+**/.venv/
+env/
+**/env/
+ENV/
 active_env/
 conda-env/
-ENV/
-env/
-ENV/local/
-ENV/share/
+backend/venv/
 
-# Environments
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Python Testing & Code Quality
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
 
-# OS files
-.DS_Store
-Thumbs.db
-Desktop.ini
+# ------------------------------------------------------------------------------
+# Node.js & React Native / Expo Frontend
+# ------------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+mobile/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
 
-# Database
+# Expo & Web Builds
+.expo/
+**/.expo/
+mobile/.expo/
+web-build/
+**/web-build/
+mobile/web-build/
+mobile/dist/
+mobile/expo-env.d.ts
+.metro-health-check*
+*.tsbuildinfo
+
+# Native Mobile Build Outputs & Artifacts
+/ios/
+/android/
+mobile/ios/
+mobile/android/
+*.apk
+*.aab
+*.ipa
+.kotlin/
+
+# Certificates, Keystores & Credentials
+*.pem
+*.jks
+*.p8
+*.p12
+*.key
+*.keystore
+*.mobileprovision
+
+# ------------------------------------------------------------------------------
+# Databases & Local Storage
+# ------------------------------------------------------------------------------
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
+*.db-wal
+backend/ipcai.db
 
-# Mobile (handled by mobile/.gitignore, but added here for safety)
-mobile/node_modules/
-mobile/.expo/
-mobile/dist/
-mobile/web-build/
-mobile/expo-env.d.ts
+# ------------------------------------------------------------------------------
+# Operating System & IDE Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# IDEs & Editors
+.idea/
+**/.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!mobile/.vscode/settings.json
+!mobile/.vscode/extensions.json
+
+# Tooling / AI Assistant Metadata
+.claude/
+.gemini/
+.agents/
+.codegraph/
+
+# Temporary / Scratch Files
+*.tmp
+*.temp
+scratch/
+**/scratch/
+tmp/
+**/tmp/

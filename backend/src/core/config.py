@@ -7,8 +7,21 @@ class Settings(BaseSettings):
     APP_NAME: str = "IPC.ai"
     DEBUG: bool = True
 
-    # Database — Supabase PostgreSQL
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:Vivekmahajan@db.aaexeshzfonwpuaohsxl.supabase.co:5432/postgres"
+    # Database — Supabase PostgreSQL (IPv4 Pooler for Render / cloud compatibility)
+    DATABASE_URL: str = "postgresql+asyncpg://postgres.aaexeshzfonwpuaohsxl:Vivekmahajan@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+    @property
+    def resolved_database_url(self) -> str:
+        """Ensure direct Supabase URLs (IPv6-only) are automatically routed to IPv4 pooler."""
+        import re
+        url = self.DATABASE_URL
+        # Match //user:password@db.<ref>.supabase.co:5432/dbname
+        m = re.search(r'//([^:]+):([^@]+)@db\.([a-z0-9]+)\.supabase\.co(?::5432)?/(.+)', url)
+        if m:
+            user, pwd, project_ref, dbname = m.groups()
+            pooler_user = f"postgres.{project_ref}" if not user.startswith(f"postgres.{project_ref}") else user
+            return f"postgresql+asyncpg://{pooler_user}:{pwd}@aws-0-ap-southeast-1.pooler.supabase.com:5432/{dbname}"
+        return url
 
     # JWT
     JWT_SECRET_KEY: str = "change-this-secret-key"

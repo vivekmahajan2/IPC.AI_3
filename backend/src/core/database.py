@@ -4,7 +4,8 @@ from .config import get_settings
 
 settings = get_settings()
 
-is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+db_url = settings.resolved_database_url
+is_sqlite = db_url.startswith("sqlite")
 
 engine_kwargs = {
     "echo": settings.DEBUG,
@@ -22,7 +23,7 @@ else:
     }
 
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    db_url,
     **engine_kwargs,
 )
 

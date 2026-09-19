@@ -16,8 +16,7 @@ from .api import (
 settings = get_settings()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+async def _init_and_seed():
     # Startup: create tables
     await init_db()
 
@@ -379,6 +378,16 @@ async def lifespan(app: FastAPI):
                 await session.commit()
                 print(f"[OK] Seeded {len(ol_data)} other law statutes from JSON")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        await _init_and_seed()
+    except Exception as e:
+        import traceback
+        print(f"[WARNING] Startup database initialization deferred or failed: {e}")
+        traceback.print_exc()
+        print("[INFO] Server will continue running to serve requests and allow health checks.")
 
     yield
 

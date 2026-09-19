@@ -399,13 +399,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# CORS Configuration
+origins = [
+    "http://localhost:8081",
+    "http://localhost:19006",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:8081",
+    "https://ipc-ai-backend-j9fp.onrender.com",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=origins,
+    allow_origin_regex=r"https?://.*",  # Supports localhost, Expo web, Vercel, Netlify, and custom domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Register routers

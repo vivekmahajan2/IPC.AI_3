@@ -9,6 +9,11 @@ const getBaseUrl = (): string => {
     return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, '');
   }
 
+  // In production builds (Vercel, EAS APK/AAB), default to live Render backend
+  if (!__DEV__) {
+    return 'https://ipc-ai-backend-j9fp.onrender.com';
+  }
+
   if (Platform.OS === 'web') {
     return 'http://localhost:8000';
   }
@@ -25,7 +30,7 @@ const getBaseUrl = (): string => {
     return 'http://10.0.2.2:8000';
   }
   
-  return 'http://localhost:8000';
+  return 'https://ipc-ai-backend-j9fp.onrender.com';
 };
 
 const BASE_URL = getBaseUrl();

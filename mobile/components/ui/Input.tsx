@@ -14,6 +14,7 @@ interface InputProps extends TextInputProps {
   error?: string;
   hint?: string;
   icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
   required?: boolean;
 }
@@ -23,6 +24,7 @@ export default function Input({
   error,
   hint,
   icon,
+  rightIcon,
   containerStyle,
   required = false,
   style,
@@ -39,10 +41,16 @@ export default function Input({
       <View style={[styles.inputWrapper, error ? styles.inputError : undefined]}>
         {icon && <View style={styles.iconContainer}>{icon}</View>}
         <TextInput
-          style={[styles.input, icon ? styles.inputWithIcon : undefined, style]}
+          style={[
+            styles.input,
+            icon ? styles.inputWithIcon : undefined,
+            rightIcon ? styles.inputWithRightIcon : undefined,
+            style,
+          ]}
           placeholderTextColor={Colors.textLight}
           {...props}
         />
+        {rightIcon && <View style={styles.rightIconContainer}>{rightIcon}</View>}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
       {hint && !error && <Text style={styles.hintText}>{hint}</Text>}
@@ -77,6 +85,9 @@ const styles = StyleSheet.create({
   iconContainer: {
     paddingLeft: Spacing.md,
   },
+  rightIconContainer: {
+    paddingRight: Spacing.md,
+  },
   input: {
     flex: 1,
     paddingVertical: Spacing.md,
@@ -86,6 +97,9 @@ const styles = StyleSheet.create({
   },
   inputWithIcon: {
     paddingLeft: Spacing.sm,
+  },
+  inputWithRightIcon: {
+    paddingRight: Spacing.sm,
   },
   errorText: {
     fontSize: FontSize.xs,

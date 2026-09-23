@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,15 +33,21 @@ const ACT_NAMES: Record<string, string> = {
 };
 
 export default function BareActScreen() {
-  const { act } = useLocalSearchParams<{ act: string }>();
+  const { act, section: initialSection } = useLocalSearchParams<{ act: string; section?: string }>();
   const router = useRouter();
   const { colors } = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSection || '');
   const [expandedSectionId, setExpandedSectionId] = useState<number | null>(null);
 
   const actCode = (act || 'BNS').toUpperCase();
   const actFullName = ACT_NAMES[actCode] || `${actCode} Bare Act`;
   const isNewAct = ['BNS', 'BNSS', 'BSA'].includes(actCode);
+
+  useEffect(() => {
+    if (initialSection) {
+      setSearchQuery(initialSection);
+    }
+  }, [initialSection]);
 
   const { data: sections, isLoading, isError } = useQuery({
     queryKey: ['bare-act-sections', actCode],
@@ -52,6 +58,19 @@ export default function BareActScreen() {
       return res.data as SectionMapping[];
     },
   });
+
+  useEffect(() => {
+    if (sections && (initialSection || searchQuery)) {
+      const target = (initialSection || searchQuery).trim().toLowerCase();
+      const match = sections.find((item) => {
+        const sec = isNewAct ? item.new_section : item.old_section;
+        return sec.toLowerCase() === target;
+      });
+      if (match) {
+        setExpandedSectionId(match.id);
+      }
+    }
+  }, [sections, initialSection]);
 
   const toggleExpand = (id: number) => {
     setExpandedSectionId(expandedSectionId === id ? null : id);
@@ -151,10 +170,18 @@ export default function BareActScreen() {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => {
-                    // Navigate to Sanhita Converter pre-filled with this search
+                    // Navigate to Sanhita Converter pre-filled with this section and law equivalence
                     router.push({
                       pathname: '/(tabs)/converter',
-                      params: { q: sectionNum },
+                      params: {
+                        q: sectionNum,
+                        section: sectionNum,
+                        act: actCode,
+                        targetSec: equivalentSec,
+                        targetAct: equivalentAct,
+                        direction: isNewAct ? 'new_to_old' : 'old_to_new',
+                        t: Date.now().toString(),
+                      },
                     });
                   }}
                   style={styles.equivalenceButton}

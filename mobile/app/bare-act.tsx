@@ -124,6 +124,21 @@ export default function BareActScreen() {
               {sectionText || 'Section text not available.'}
             </Text>
 
+            {/* Transition & Legal Context Note */}
+            {item.mapping_notes && item.mapping_notes.trim().length > 0 && (
+              <View style={[styles.notesBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <View style={styles.notesHeader}>
+                  <Ionicons name="information-circle-outline" size={15} color={colors.primary} />
+                  <Text style={[styles.notesLabel, { color: colors.primary }]}>
+                    Transition & Comparative Analysis ({equivalentAct}):
+                  </Text>
+                </View>
+                <Text style={[styles.notesText, { color: colors.textSecondary }]}>
+                  {item.mapping_notes}
+                </Text>
+              </View>
+            )}
+
             {/* Equivalence Link */}
             {equivalentSec && (
               <View style={[styles.equivalenceBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -295,5 +310,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     marginRight: Spacing.sm,
+  },
+  notesBox: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  notesLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  notesText: {
+    fontSize: FontSize.sm,
+    lineHeight: 20,
   },
 });

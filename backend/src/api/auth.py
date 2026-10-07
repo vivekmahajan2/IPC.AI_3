@@ -28,7 +28,7 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
     full_name: str
-    role: str = "police"
+    role: str = "public"
     phone: Optional[str] = None
     badge_number: Optional[str] = None
     station: Optional[str] = None
@@ -148,8 +148,8 @@ async def register(
             detail=f"Invalid role. Must be one of: {[r.value for r in UserRole]}",
         )
 
-    # Restrict police, superior and admin accounts to admin creation
-    if role in [UserRole.ADMIN, UserRole.POLICE, UserRole.SUPERIOR]:
+    # Restrict administrator and superior roles to admin creation
+    if role in [UserRole.ADMIN, UserRole.SUPERIOR]:
         if not current_user or current_user.role != UserRole.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

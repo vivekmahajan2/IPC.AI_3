@@ -491,6 +491,51 @@ export default function HomeScreen() {
 
   // Render Sub-Screen: Act Comparison
   const renderActComparison = () => {
+    const comparisonBlocks = [
+      {
+        id: 'bns_ipc',
+        title: 'BNS v/s IPC',
+        subtitle: 'Substantive Criminal Penal Code',
+        newAct: 'BNS',
+        newLabel: 'Bharatiya Nyaya Sanhita, 2023',
+        newSecCount: '358 Secs',
+        newColor: '#7C3AED',
+        oldAct: 'IPC',
+        oldLabel: 'Indian Penal Code, 1860',
+        oldSecCount: '511 Secs',
+        oldColor: '#7C3AED',
+        highlight: 'Community service added, sedition repealed, organized crime & mob lynching codified.',
+      },
+      {
+        id: 'bnss_crpc',
+        title: 'BNSS v/s CrPC',
+        subtitle: 'Procedural Criminal Justice & Investigation',
+        newAct: 'BNSS',
+        newLabel: 'Bharatiya Nagarik Suraksha Sanhita, 2023',
+        newSecCount: '531 Secs',
+        newColor: '#059669',
+        oldAct: 'CrPC',
+        oldLabel: 'Code of Criminal Procedure, 1973',
+        oldSecCount: '484 Secs',
+        oldColor: '#059669',
+        highlight: 'Mandatory videography in search/seizure, forensic visit for 7+ yr crimes, Zero FIR statutory backing.',
+      },
+      {
+        id: 'bsa_iea',
+        title: 'BSA v/s IEA',
+        subtitle: 'Law of Evidence & Digital Admissibility',
+        newAct: 'BSA',
+        newLabel: 'Bharatiya Sakshya Adhiniyam, 2023',
+        newSecCount: '170 Secs',
+        newColor: '#D97706',
+        oldAct: 'IEA',
+        oldLabel: 'Indian Evidence Act, 1872',
+        oldSecCount: '167 Secs',
+        oldColor: '#D97706',
+        highlight: 'Electronic and digital records given primary evidence standing, modernized forensic proof standards.',
+      },
+    ];
+
     return (
       <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
         <View style={styles.subScreenHeader}>
@@ -500,90 +545,92 @@ export default function HomeScreen() {
           <Text style={[styles.subScreenTitle, { color: colors.text }]}>ACT COMPARISON</Text>
           <View style={{ width: 24 }} />
         </View>
+
         <ScrollView contentContainerStyle={styles.subScreenScrollContent}>
-          {/* BNS v/s IPC */}
-          <Card style={[styles.comparisonCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.comparisonCardTitle, { color: colors.text }]}>BNS v/s IPC</Text>
-            <View style={styles.comparisonRow}>
-              <TouchableOpacity
-                style={[styles.comparisonBadgeNew, { backgroundColor: '#7C3AED' }]}
-                onPress={() => {
-                  setScreenState('dashboard');
-                  router.push('/bare-act?act=BNS');
-                }}
-              >
-                <Text style={styles.badgeMiniText}>NEW</Text>
-                <Text style={styles.badgeBigText}>BNS</Text>
-              </TouchableOpacity>
-              <Text style={[styles.vsText, { color: colors.textSecondary }]}>vs</Text>
-              <TouchableOpacity
-                style={[styles.comparisonBadgeOld, { borderColor: '#7C3AED' }]}
-                onPress={() => {
-                  setScreenState('dashboard');
-                  router.push('/bare-act?act=IPC');
-                }}
-              >
-                <Text style={[styles.badgeMiniTextOld, { color: '#7C3AED' }]}>OLD</Text>
-                <Text style={[styles.badgeBigTextOld, { color: '#7C3AED' }]}>IPC</Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
+          {comparisonBlocks.map((block) => (
+            <Card key={block.id} style={[styles.comparisonCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.comparisonHeader}>
+                <Text style={[styles.comparisonCardTitle, { color: colors.text }]}>{block.title}</Text>
+                <Text style={[styles.comparisonSubtitle, { color: colors.textSecondary }]}>{block.subtitle}</Text>
+              </View>
 
-          {/* BNSS v/s CrPC */}
-          <Card style={[styles.comparisonCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.comparisonCardTitle, { color: colors.text }]}>BNSS v/s CrPC</Text>
-            <View style={styles.comparisonRow}>
-              <TouchableOpacity
-                style={[styles.comparisonBadgeNew, { backgroundColor: '#059669' }]}
-                onPress={() => {
-                  setScreenState('dashboard');
-                  router.push('/bare-act?act=BNSS');
-                }}
-              >
-                <Text style={styles.badgeMiniText}>NEW</Text>
-                <Text style={styles.badgeBigText}>BNSS</Text>
-              </TouchableOpacity>
-              <Text style={[styles.vsText, { color: colors.textSecondary }]}>vs</Text>
-              <TouchableOpacity
-                style={[styles.comparisonBadgeOld, { borderColor: '#059669' }]}
-                onPress={() => {
-                  setScreenState('dashboard');
-                  router.push('/bare-act?act=CrPC');
-                }}
-              >
-                <Text style={[styles.badgeMiniTextOld, { color: '#059669' }]}>OLD</Text>
-                <Text style={[styles.badgeBigTextOld, { color: '#059669' }]}>CrPC</Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
+              <View style={styles.comparisonRow}>
+                {/* NEW LAW BADGE */}
+                <TouchableOpacity
+                  style={[styles.comparisonBadgeNew, { backgroundColor: block.newColor }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setScreenState('dashboard');
+                    router.push(`/bare-act?act=${block.newAct}`);
+                  }}
+                >
+                  <Text style={styles.badgeMiniText}>NEW</Text>
+                  <Text style={styles.badgeBigText}>{block.newAct}</Text>
+                  <Text style={styles.badgeSubText}>{block.newSecCount}</Text>
+                </TouchableOpacity>
 
-          {/* BSA v/s IEA */}
-          <Card style={[styles.comparisonCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.comparisonCardTitle, { color: colors.text }]}>BSA v/s IEA</Text>
-            <View style={styles.comparisonRow}>
+                {/* MIDDLE INTERACTIVE CONVERTER BUTTON (Tapping middle opens converter) */}
+                <TouchableOpacity
+                  style={[styles.comparisonMiddleButton, { backgroundColor: colors.surface, borderColor: block.newColor }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setScreenState('dashboard');
+                    router.push({
+                      pathname: '/(tabs)/converter',
+                      params: { act: block.oldAct.toUpperCase(), direction: 'old_to_new' },
+                    });
+                  }}
+                >
+                  <View style={[styles.comparisonMiddleCircle, { backgroundColor: block.newColor }]}>
+                    <Ionicons name="swap-horizontal" size={18} color="#FFFFFF" />
+                  </View>
+                  <Text style={[styles.comparisonMiddleText, { color: colors.text }]}>vs</Text>
+                  <Text style={[styles.comparisonMiddleSubText, { color: block.newColor }]}>Convert ⇄</Text>
+                </TouchableOpacity>
+
+                {/* OLD LAW BADGE */}
+                <TouchableOpacity
+                  style={[styles.comparisonBadgeOld, { borderColor: block.oldColor }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setScreenState('dashboard');
+                    router.push(`/bare-act?act=${block.oldAct}`);
+                  }}
+                >
+                  <Text style={[styles.badgeMiniTextOld, { color: block.oldColor }]}>OLD</Text>
+                  <Text style={[styles.badgeBigTextOld, { color: block.oldColor }]}>{block.oldAct}</Text>
+                  <Text style={[styles.badgeSubTextOld, { color: colors.textSecondary }]}>{block.oldSecCount}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Key Legislative Shift Highlight */}
+              <View style={[styles.comparisonHighlightBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <Ionicons name="flash-outline" size={14} color={block.newColor} />
+                <Text style={[styles.comparisonHighlightText, { color: colors.textSecondary }]}>
+                  {block.highlight}
+                </Text>
+              </View>
+
+              {/* Direct Open in Sanhita Converter Bar */}
               <TouchableOpacity
-                style={[styles.comparisonBadgeNew, { backgroundColor: '#D97706' }]}
+                style={[styles.openConverterBar, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
+                activeOpacity={0.7}
                 onPress={() => {
                   setScreenState('dashboard');
-                  router.push('/bare-act?act=BSA');
+                  router.push({
+                    pathname: '/(tabs)/converter',
+                    params: { act: block.oldAct.toUpperCase(), direction: 'old_to_new' },
+                  });
                 }}
               >
-                <Text style={styles.badgeMiniText}>NEW</Text>
-                <Text style={styles.badgeBigText}>BSA</Text>
+                <Ionicons name="git-compare-outline" size={16} color={colors.primary} />
+                <Text style={[styles.openConverterBarText, { color: colors.primary }]}>
+                  Open {block.newAct} ↔ {block.oldAct} Sanhita Converter
+                </Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.primary} />
               </TouchableOpacity>
-              <Text style={[styles.vsText, { color: colors.textSecondary }]}>vs</Text>
-              <TouchableOpacity
-                style={[styles.comparisonBadgeOld, { borderColor: '#D97706' }]}
-                onPress={() => {
-                  setScreenState('dashboard');
-                  router.push('/bare-act?act=IEA');
-                }}
-              >
-                <Text style={[styles.badgeMiniTextOld, { color: '#D97706' }]}>OLD</Text>
-                <Text style={[styles.badgeBigTextOld, { color: '#D97706' }]}>IEA</Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
+            </Card>
+          ))}
         </ScrollView>
       </View>
     );
@@ -591,22 +638,145 @@ export default function HomeScreen() {
 
   // Render Sub-Screen: Court Registry
   const renderCourtRegistry = () => {
-    const courtsList = [
-      'Supreme Court of India',
-      'Supreme Court - Daily Orders',
-      'Allahabad High Court',
-      'Andhra Pradesh High Court',
-      'Bombay High Court',
-      'Chattisgarh High Court',
-      'Madras High Court',
-      'Delhi High Court',
-      'Delhi High Court - Orders',
-      'Gauhati High Court',
-      'Gujarat High Court',
+    const courtRegistryData = [
+      {
+        name: 'Supreme Court of India',
+        category: 'Apex Court',
+        principalSeat: 'Tilak Marg, New Delhi',
+        benches: 'Constitution Benches & Special Benches',
+        jurisdiction: 'Entire Territory of India (Articles 32, 131-136, 141, 142)',
+        established: '28 January 1950',
+        services: ['e-Filing 3.0', 'Daily Orders', 'Caveat Search', 'Live Streaming', 'Cause Lists'],
+        description: 'The highest judicial forum and final court of appeal under the Constitution of India. Decisions of the Supreme Court are binding law of the land across all courts within India under Article 141.',
+        registryDetails: 'Registrar General oversees Judicial, Listing, Caveat, and Digitization registries. Operates 24/7 digital e-filing portal and paperless hearing facilities.',
+      },
+      {
+        name: 'Supreme Court - Daily Orders & Listing',
+        category: 'Daily Orders / Benches',
+        principalSeat: 'New Delhi',
+        benches: 'All Courtrooms & Registrar Courts',
+        jurisdiction: 'Daily Orders, Mentioning Slips, Tentative Cause Lists',
+        established: 'Real-time Digital Registry',
+        services: ['Daily Signed Orders', 'Office Reports', 'Mentioning Portal', 'Neutral Citations'],
+        description: 'Official digital repository providing contemporaneous signed orders, record of proceedings, and cause list announcements for all benches of the Supreme Court.',
+        registryDetails: 'Instantaneous order upload within hours of pronouncement, integrated with National Judicial Data Grid (NJDG).',
+      },
+      {
+        name: 'Bombay High Court',
+        category: 'Chartered High Court',
+        principalSeat: 'Mumbai, Maharashtra',
+        benches: 'Nagpur, Aurangabad & Panaji (Goa)',
+        jurisdiction: 'Maharashtra, Goa, Dadra & Nagar Haveli and Daman & Diu',
+        established: '14 August 1862',
+        services: ['Online Case Status', 'CIS Certified Copies', 'e-Pass Registry', 'Cause Lists'],
+        description: 'Chartered High Court exercising extraordinary original civil and criminal jurisdiction, appellate, and supervisory writ powers under Articles 226 and 227.',
+        registryDetails: 'Registrar General at Principal Bench Mumbai with Additional Registrars at Nagpur, Aurangabad, and Goa benches.',
+      },
+      {
+        name: 'Delhi High Court',
+        category: 'High Court',
+        principalSeat: 'Sher Shah Road, New Delhi',
+        benches: 'Principal Bench',
+        jurisdiction: 'National Capital Territory of Delhi',
+        established: '31 October 1966',
+        services: ['Paperless Digital Courts', 'Online e-Filing', 'Virtual Hearings', 'e-RTI Portal'],
+        description: 'Leading technologically modernized High Court exercising original civil jurisdiction and comprehensive constitutional writ powers across Delhi NCR.',
+        registryDetails: 'Full-fledged digital registry handling commercial division filings, PILs, and criminal appeals with 100% digital workflows.',
+      },
+      {
+        name: 'Allahabad High Court',
+        category: 'High Court',
+        principalSeat: 'Prayagraj (Allahabad), Uttar Pradesh',
+        benches: 'Lucknow Bench',
+        jurisdiction: 'State of Uttar Pradesh',
+        established: '1866 (Relocated to Allahabad 1869)',
+        services: ['Web Copy Certification', 'Case Information System', 'Cause List Archive', 'e-Gate Pass'],
+        description: 'The largest High Court in India by judicial sanctioned strength, exercising vital criminal appellate, bail jurisdiction, and constitutional oversight.',
+        registryDetails: 'Handles massive volume of criminal and civil filings with dedicated digital reporting desks at Prayagraj and Lucknow.',
+      },
+      {
+        name: 'Madras High Court',
+        category: 'Chartered High Court',
+        principalSeat: 'Chennai, Tamil Nadu',
+        benches: 'Madurai Bench',
+        jurisdiction: 'State of Tamil Nadu & Union Territory of Puducherry',
+        established: '26 June 1862',
+        services: ['e-Filing Portal', 'Neutral Citation Search', 'Digital Certified Copies', 'Legal Aid'],
+        description: 'Historic chartered High Court with extensive maritime, admiralty, original, and appellate jurisdiction over Tamil Nadu and Puducherry.',
+        registryDetails: 'Principal Registry at Chennai overseeing judicial records, scrutiny benches, and Madurai circuit administration.',
+      },
+      {
+        name: 'Calcutta High Court',
+        category: 'Chartered High Court',
+        principalSeat: 'Kolkata, West Bengal',
+        benches: 'Jalpaiguri Circuit Bench & Port Blair (Andaman & Nicobar)',
+        jurisdiction: 'State of West Bengal & Union Territory of Andaman and Nicobar Islands',
+        established: '1 July 1862 (Oldest in India)',
+        services: ['Neutral Citation', 'Online Copying', 'Digital Case Docket', 'Cause List Portal'],
+        description: 'The oldest High Court in India, established by Letters Patent under the High Courts Act 1861, with original civil, criminal, and island jurisdiction.',
+        registryDetails: 'Maintains ancient judicial records and modern e-Courts case information systems for mainland and Island circuits.',
+      },
+      {
+        name: 'Karnataka High Court',
+        category: 'High Court',
+        principalSeat: 'Bengaluru, Karnataka (Attara Kacheri)',
+        benches: 'Dharwad Bench & Kalaburagi Bench',
+        jurisdiction: 'State of Karnataka',
+        established: '1884',
+        services: ['Digital Courtrooms', 'Online Case Status', 'Cause List System', 'e-Filing Portal'],
+        description: 'Pioneering judicial institution housed in the historic Attara Kacheri, renowned for progressive commercial division, IT, and constitutional jurisprudence.',
+        registryDetails: 'Advanced IT-enabled registry supporting paperless commercial benches and video-conferencing connectivity.',
+      },
+      {
+        name: 'Gujarat High Court',
+        category: 'High Court',
+        principalSeat: 'Sola, Ahmedabad, Gujarat',
+        benches: 'Principal Bench',
+        jurisdiction: 'State of Gujarat',
+        established: '1 May 1960',
+        services: ['Live Streaming Portal', 'Digital e-Courts', 'Cause List Search', 'Certified Copies'],
+        description: 'First High Court in India to introduce mandatory open live streaming of judicial proceedings, exercising appellate and writ powers.',
+        registryDetails: 'High-tech judicial registry managing automated case numbering, digital scrutiny, and e-summons issuance.',
+      },
+      {
+        name: 'Gauhati High Court',
+        category: 'High Court',
+        principalSeat: 'Guwahati, Assam',
+        benches: 'Kohima (Nagaland), Aizawl (Mizoram) & Itanagar (Arunachal Pradesh)',
+        jurisdiction: 'Assam, Nagaland, Mizoram & Arunachal Pradesh',
+        established: '1 March 1948',
+        services: ['North-East e-Registry', 'Case Tracking', 'Digital Cause Lists', 'Legal Services'],
+        description: 'Unique multi-state High Court administering justice across four North Eastern States, safeguarding diverse tribal customs and constitutional protections.',
+        registryDetails: 'Operates central registry at Guwahati with permanent registries in Nagaland, Mizoram, and Arunachal Pradesh.',
+      },
+      {
+        name: 'Andhra Pradesh High Court',
+        category: 'High Court',
+        principalSeat: 'Nelapadu, Amaravati, Andhra Pradesh',
+        benches: 'Principal Bench',
+        jurisdiction: 'State of Andhra Pradesh',
+        established: '1 January 2019',
+        services: ['e-Courts Services', 'Daily Cause List', 'Caveat Search', 'Case Tracking'],
+        description: 'Modern high-tech High Court established post-bifurcation, exercising constitutional jurisdiction over the State of Andhra Pradesh.',
+        registryDetails: 'Fully digital case management system enabling real-time notifications to advocates and litigants.',
+      },
+      {
+        name: 'Chhattisgarh High Court',
+        category: 'High Court',
+        principalSeat: 'Bodri, Bilaspur, Chhattisgarh',
+        benches: 'Principal Bench',
+        jurisdiction: 'State of Chhattisgarh',
+        established: '1 November 2000',
+        services: ['e-Filing', 'Case Status', 'CIS Cause List', 'Digital Certified Copies'],
+        description: 'High Court located at Bilaspur, exercising jurisdiction over 33 districts of Chhattisgarh with specialized tribal rights and environmental benches.',
+        registryDetails: 'Centralized registry handling bail applications, criminal revisions, and constitutional writ matters.',
+      },
     ];
 
-    const filteredCourts = courtsList.filter((court) =>
-      court.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredCourts = courtRegistryData.filter((court) =>
+      court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      court.principalSeat.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      court.jurisdiction.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -621,7 +791,7 @@ export default function HomeScreen() {
 
         <View style={styles.searchBarContainer}>
           <TextInput
-            placeholder="Search Registry..."
+            placeholder="Search Registry by court, seat, or jurisdiction..."
             placeholderTextColor={colors.textLight}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -631,22 +801,110 @@ export default function HomeScreen() {
 
         <ScrollView contentContainerStyle={styles.subScreenScrollContent}>
           {filteredCourts.map((court, index) => (
-            <TouchableOpacity
+            <Card
               key={index}
-              style={[styles.courtItemCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => {
-                setScreenState('dashboard');
-                router.push('/judgments');
-              }}
+              style={[styles.courtCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
-              <View style={styles.courtItemLeft}>
-                <View style={[styles.courtIconContainer, { backgroundColor: colors.primaryLight }]}>
-                  <Ionicons name="business" size={18} color={colors.primary} />
+              {/* Top Row: Name and Type Badge */}
+              <View style={styles.courtCardTop}>
+                <View style={styles.courtCardTitleRow}>
+                  <View style={[styles.courtIconContainer, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name="business" size={18} color={colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.courtItemText, { color: colors.text, fontSize: FontSize.md }]}>
+                      {court.name}
+                    </Text>
+                    <Text style={[styles.courtMetaText, { color: colors.textSecondary }]}>
+                      Est. {court.established} · {court.category}
+                    </Text>
+                  </View>
                 </View>
-                <Text style={[styles.courtItemText, { color: colors.text }]}>{court}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
-            </TouchableOpacity>
+
+              {/* Seat & Benches */}
+              <View style={styles.courtMetaRow}>
+                <Ionicons name="location-outline" size={14} color={colors.primary} />
+                <Text style={[styles.courtMetaText, { color: colors.text, fontWeight: '600' }]}>
+                  {court.principalSeat}
+                </Text>
+              </View>
+              {court.benches && (
+                <View style={[styles.courtMetaRow, { marginTop: 2 }]}>
+                  <Ionicons name="git-branch-outline" size={14} color={colors.textLight} />
+                  <Text style={[styles.courtMetaText, { color: colors.textSecondary }]}>
+                    {court.benches}
+                  </Text>
+                </View>
+              )}
+
+              {/* Jurisdiction */}
+              <View style={[styles.courtMetaRow, { marginTop: 4 }]}>
+                <Ionicons name="shield-outline" size={14} color={colors.secondary} />
+                <Text style={[styles.courtMetaText, { color: colors.textSecondary, flex: 1 }]}>
+                  {court.jurisdiction}
+                </Text>
+              </View>
+
+              {/* Description Overview */}
+              <Text style={[styles.courtOverviewText, { color: colors.textSecondary }]}>
+                {court.description}
+              </Text>
+
+              {/* Registry Services Chips */}
+              <View style={styles.courtServicesRow}>
+                {court.services.map((service, sIdx) => (
+                  <View
+                    key={sIdx}
+                    style={[styles.courtServiceChip, { backgroundColor: colors.background, borderColor: colors.border, borderWidth: 1 }]}
+                  >
+                    <Text style={[styles.courtServiceChipText, { color: colors.primary }]}>
+                      {service}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Card Actions */}
+              <View style={[styles.courtActionsRow, { borderTopColor: colors.border }]}>
+                <TouchableOpacity
+                  style={styles.courtActionButton}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setAiTitle(`${court.name} — Registry Details`);
+                    setAiSubtitle(`Seat: ${court.principalSeat} · Est. ${court.established}`);
+                    setAiDescription(
+                      `COURT REGISTRY DOSSIER — ${court.name.toUpperCase()}\n\n` +
+                      `Category: ${court.category}\n` +
+                      `Principal Seat: ${court.principalSeat}\n` +
+                      `${court.benches ? `Permanent / Circuit Benches: ${court.benches}\n` : ''}` +
+                      `Territorial & Constitutional Jurisdiction: ${court.jurisdiction}\n` +
+                      `Established: ${court.established}\n\n` +
+                      `KEY REGISTRY SERVICES:\n${court.services.map((s) => `• ${s}`).join('\n')}\n\n` +
+                      `COURT OVERVIEW:\n${court.description}\n\n` +
+                      `REGISTRY & FILING INSTRUCTIONS:\n${court.registryDetails}`
+                    );
+                    setScreenState('ai-helper');
+                  }}
+                >
+                  <Ionicons name="information-circle-outline" size={15} color={colors.secondary} />
+                  <Text style={[styles.courtActionText, { color: colors.secondary }]}>Registry Details</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.courtActionButton}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setScreenState('dashboard');
+                    router.push('/judgments');
+                  }}
+                >
+                  <Ionicons name="search" size={15} color={colors.primary} />
+                  <Text style={[styles.courtActionText, { color: colors.primary }]}>Search Judgments</Text>
+                  <Ionicons name="arrow-forward" size={12} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            </Card>
           ))}
         </ScrollView>
 
@@ -659,7 +917,7 @@ export default function HomeScreen() {
           }}
         >
           <Ionicons name="search" size={18} color="#FFFFFF" />
-          <Text style={styles.floatingSearchJudgmentsText}>Search Judgment</Text>
+          <Text style={styles.floatingSearchJudgmentsText}>Search All Judgments</Text>
         </TouchableOpacity>
       </View>
     );
@@ -668,36 +926,229 @@ export default function HomeScreen() {
   // Render Sub-Screen: COI (Constitution of India)
   const renderCOI = () => {
     const coiParts = [
-      { part: 'Preamble', title: 'Preamble to the Constitution', range: 'Preamble' },
-      { part: 'Part I', title: 'The Union and its Territory', range: 'Articles 1-4' },
-      { part: 'Part II', title: 'Citizenship', range: 'Articles 5-11' },
-      { part: 'Part III', title: 'Fundamental Rights', range: 'Articles 12-35' },
-      { part: 'Part IV', title: 'Directive Principles of State Policy', range: 'Articles 36-51' },
-      { part: 'Part IVA', title: 'Fundamental Duties', range: 'Article 51A' },
-      { part: 'Part V', title: 'The Union', range: 'Articles 52-151' },
-      { part: 'Part VI', title: 'The States', range: 'Articles 152-237' },
-      { part: 'Part VIII', title: 'The Union Territories', range: 'Articles 239-242' },
-      { part: 'Part IX', title: 'The Panchayats', range: 'Articles 243-243O' },
-      { part: 'Part IXA', title: 'The Municipalities', range: 'Articles 243P-243ZG' },
-      { part: 'Part X', title: 'The Scheduled and Tribal Areas', range: 'Articles 244-244A' },
-      { part: 'Part XI', title: 'Relations Between the Union and the States', range: 'Articles 245-263' },
-      { part: 'Part XII', title: 'Finance, Property, Contracts and Suits', range: 'Articles 264-300A' },
-      { part: 'Part XIII', title: 'Trade, Commerce and Intercourse', range: 'Articles 301-307' },
-      { part: 'Part XIV', title: 'Services Under the Union and the States', range: 'Articles 308-323' },
-      { part: 'Part XIVA', title: 'Tribunals', range: 'Articles 323A-323B' },
-      { part: 'Part XV', title: 'Elections', range: 'Articles 324-329A' },
-      { part: 'Part XVI', title: 'Special Provisions Relating to Certain Classes', range: 'Articles 330-342' },
-      { part: 'Part XVII', title: 'Official Language', range: 'Articles 343-351' },
-      { part: 'Part XVIII', title: 'Emergency Provisions', range: 'Articles 352-360' },
-      { part: 'Part XIX', title: 'Miscellaneous', range: 'Articles 361-367' },
-      { part: 'Part XX', title: 'Amendment of the Constitution', range: 'Article 368' },
-      { part: 'Part XXI', title: 'Temporary, Transitional and Special Provisions', range: 'Articles 369-392' },
-      { part: 'Part XXII', title: 'Short Title, Commencement, Hindi Text & Repeals', range: 'Articles 393-395' },
+      {
+        part: 'Preamble',
+        title: 'Preamble to the Constitution',
+        range: 'Preamble',
+        summary: 'The guiding soul and philosophy of the Constitution declaring India to be a Sovereign, Socialist, Secular, Democratic Republic committed to Justice, Liberty, Equality, and Fraternity.',
+        keyArticles: ['Solemn Declaration of the Sovereign Republic', '42nd Amendment Inclusions (Secular, Socialist, Integrity)', 'Basic Structure Doctrine Anchor'],
+        doctrines: 'Basic Structure Doctrine, Sovereign Republic, Constitutional Supremacy',
+        details: 'The Preamble embodies the fundamental objectives of the Indian State. In Kesavananda Bharati (1973), the Supreme Court ruled that the Preamble is an integral part of the Constitution and forms the foundational basis of the Basic Structure Doctrine, precluding Parliament from altering its essential democratic and secular character.',
+      },
+      {
+        part: 'Part I',
+        title: 'The Union and its Territory',
+        range: 'Articles 1-4',
+        summary: 'Defines India as an indestructible Union of destructible States, governing the admission, establishment, and territorial re-organization of States and Union Territories.',
+        keyArticles: ['Art 1: India, that is Bharat, shall be a Union of States', 'Art 2: Admission or establishment of new States', 'Art 3: Formation of new States & alteration of boundaries'],
+        doctrines: 'Federal Indestructible Union, Territorial Integrity',
+        details: 'Part I vests plenary power in Parliament to reorganize state boundaries by simple majority legislation under Article 3. Under Article 1, India is declared a Union of States rather than a Federation, emphasizing national unity over state succession.',
+      },
+      {
+        part: 'Part II',
+        title: 'Citizenship',
+        range: 'Articles 5-11',
+        summary: 'Regulates constitutional citizenship at the commencement of the Republic and vests plenary authority in Parliament to govern acquisition, termination, and overseas citizenship rights.',
+        keyArticles: ['Art 5: Citizenship at the commencement', 'Art 9: Persons acquiring foreign citizenship lose Indian citizenship', 'Art 11: Parliament to regulate rights of citizenship by law'],
+        doctrines: 'Single Citizenship, Parliamentary Supremacy in Nationality',
+        details: 'India maintains a unified single citizenship throughout the nation. Under Article 11, Parliament enacted the Citizenship Act, 1955, regulating birth, descent, registration, naturalization, and overseas citizenship.',
+      },
+      {
+        part: 'Part III',
+        title: 'Fundamental Rights',
+        range: 'Articles 12-35',
+        summary: 'The Magna Carta of India guaranteeing justiciable civil liberties against state encroachment, covering equality, core freedoms, personal liberty, and constitutional writ remedies.',
+        keyArticles: ['Art 14: Equality before law & equal protection', 'Art 19: Protection of 6 core freedoms', 'Art 21: Right to life & personal liberty', 'Art 22: Arrest & detention safeguards', 'Art 32: Constitutional remedies (Writs)'],
+        doctrines: 'Due Process of Law, Non-Arbitrariness, Golden Triangle (Arts 14, 19, 21), Basic Structure',
+        details: 'Part III forms the bedrock of Indian constitutional jurisprudence. Article 21 has been expanded by the Supreme Court (Maneka Gandhi, Puttaswamy) to encompass the right to privacy, speedy trial, dignity, and free legal aid. Article 32 empowers citizens to directly approach the Supreme Court via Habeas Corpus, Mandamus, Prohibition, Quo Warranto, and Certiorari.',
+      },
+      {
+        part: 'Part IV',
+        title: 'Directive Principles of State Policy',
+        range: 'Articles 36-51',
+        summary: 'Fundamental non-justiciable principles obligating the State to establish a socio-economic welfare state, reduce inequalities, provide free legal aid, and promote international peace.',
+        keyArticles: ['Art 39A: Equal justice and free legal aid', 'Art 40: Organization of village panchayats', 'Art 44: Uniform Civil Code for citizens', 'Art 50: Separation of judiciary from executive'],
+        doctrines: 'Welfare State, Harmonious Construction with Fundamental Rights (Minerva Mills)',
+        details: 'Though unenforceable by court mandamus under Article 37, DPSP are fundamental in national governance. In Minerva Mills (1980), the Supreme Court held that the Constitution rests on the harmonious balance between Part III and Part IV.',
+      },
+      {
+        part: 'Part IVA',
+        title: 'Fundamental Duties',
+        range: 'Article 51A',
+        summary: 'Prescribes eleven moral and civic obligations for every Indian citizen, including honoring the Constitution, preserving composite heritage, protecting forests, and educating children.',
+        keyArticles: ['Art 51A(a): Respect Constitution, National Flag & Anthem', 'Art 51A(e): Promote harmony & renounce derogatory practices', 'Art 51A(g): Protect wildlife and forests', 'Art 51A(k): Duty to educate children (6-14 yrs)'],
+        doctrines: 'Civic Duty & Patriotism, Constitutional Moral Code',
+        details: 'Inserted by the 42nd Amendment on the recommendation of the Swaran Singh Committee (with 11th duty added by the 86th Amendment). While not directly enforceable by writs, they serve as authoritative interpretative aids in assessing statutory constitutionality.',
+      },
+      {
+        part: 'Part V',
+        title: 'The Union',
+        range: 'Articles 52-151',
+        summary: 'Establishes the Union Executive (President & Council of Ministers), Parliament (Lok Sabha & Rajya Sabha), and the Supreme Court of India.',
+        keyArticles: ['Art 72: Pardoning power of the President', 'Art 124: Establishment & constitution of Supreme Court', 'Art 136: Special Leave Petitions (SLP)', 'Art 141: Law declared by Supreme Court binding on all courts', 'Art 142: Complete justice powers'],
+        doctrines: 'Separation of Powers, Judicial Independence, Binding Precedent, Complete Justice',
+        details: 'Chapter IV of Part V governs the Union Judiciary. Article 141 establishes the binding nature of Supreme Court precedents on all courts in India, while Article 142 gives the Court plenary authority to issue any decree necessary to do complete justice.',
+      },
+      {
+        part: 'Part VI',
+        title: 'The States',
+        range: 'Articles 152-237',
+        summary: 'Delineates State Executive governance (Governor & Chief Minister), State Legislatures, High Courts, and Subordinate Courts across districts.',
+        keyArticles: ['Art 161: Pardoning power of Governor', 'Art 214: High Courts for States', 'Art 226: Extraordinary writ jurisdiction of High Courts', 'Art 227: Power of superintendence over all subordinate courts'],
+        doctrines: 'High Court Judicial Review, Supervisory Jurisdiction over Lower Judiciary',
+        details: 'Article 226 empowers High Courts to issue prerogative writs not only for Fundamental Rights but for any legal right violation. Article 227 vests High Courts with continuous judicial and administrative superintendence over all lower courts and tribunals.',
+      },
+      {
+        part: 'Part VIII',
+        title: 'The Union Territories',
+        range: 'Articles 239-242',
+        summary: 'Governs the administrative framework for Union Territories administered by the President through Lieutenant Governors, including special provisions for Delhi NCT.',
+        keyArticles: ['Art 239: Administration of Union Territories', 'Art 239AA: Special constitutional governance provisions for NCT of Delhi'],
+        doctrines: 'Asymmetric Federalism, Direct Union Administration',
+        details: 'Article 239AA was inserted by the 69th Amendment establishing an elected Legislative Assembly and Council of Ministers for Delhi, subject to specialized constitutional allocation of police, public order, and land.',
+      },
+      {
+        part: 'Part IX',
+        title: 'The Panchayats',
+        range: 'Articles 243-243O',
+        summary: 'Constitutionalizes decentralized three-tier rural local self-government, Gram Sabhas, reservation for women and SC/ST, and State Finance Commissions.',
+        keyArticles: ['Art 243A: Gram Sabha authority', 'Art 243D: Reservation of seats for SC, ST & Women', 'Art 243I: State Finance Commission'],
+        doctrines: 'Grassroots Democratic Decentralization, Rural Empowerment',
+        details: 'Enacted via the 73rd Amendment, 1992, Part IX transformed rural local bodies into constitutional units of self-government with mandatory five-year elections.',
+      },
+      {
+        part: 'Part IXA',
+        title: 'The Municipalities',
+        range: 'Articles 243P-243ZG',
+        summary: 'Establishes constitutional urban local governance, Nagar Panchayats, Municipal Councils, Municipal Corporations, and Ward Committees.',
+        keyArticles: ['Art 243Q: Constitution of Municipalities', 'Art 243T: Reservation of seats in Municipalities', 'Art 243W: Municipal powers and 12th Schedule functions'],
+        doctrines: 'Urban Local Self-Government, Metropolitan Planning',
+        details: 'Inserted by the 74th Amendment, 1992, creating statutory framework for urban governance, civic revenue allocation, and urban spatial planning.',
+      },
+      {
+        part: 'Part X',
+        title: 'The Scheduled and Tribal Areas',
+        range: 'Articles 244-244A',
+        summary: 'Provides autonomous administrative frameworks under the Fifth and Sixth Schedules to safeguard indigenous tribal cultures, customary laws, and land rights.',
+        keyArticles: ['Art 244: Administration of Scheduled and Tribal Areas', 'Fifth Schedule: Tribal Advisory Councils', 'Sixth Schedule: Autonomous District Councils in North-East'],
+        doctrines: 'Tribal Autonomy, Customary Law Protection',
+        details: 'Grants extensive legislative and judicial autonomy to District Councils in Assam, Meghalaya, Tripura, and Mizoram, shielding tribal populations from land alienation.',
+      },
+      {
+        part: 'Part XI',
+        title: 'Relations Between the Union and the States',
+        range: 'Articles 245-263',
+        summary: 'Regulates legislative, administrative, and interstate relations between Centre and States across the Seventh Schedule (Union, State, Concurrent Lists).',
+        keyArticles: ['Art 246: Subject-matter of laws (Seventh Schedule)', 'Art 254: Inconsistency between Central and State laws (Repugnancy)', 'Art 262: Adjudication of interstate water disputes', 'Art 263: Inter-State Council'],
+        doctrines: 'Pith and Substance, Doctrine of Repugnancy, Cooperative Federalism',
+        details: 'Governs federal supremacy while preserving state legislative competence. In cases of direct conflict in the Concurrent List, Article 254 dictates that Parliamentary law prevails unless the State law received Presidential assent.',
+      },
+      {
+        part: 'Part XII',
+        title: 'Finance, Property, Contracts and Suits',
+        range: 'Articles 264-300A',
+        summary: 'Governs revenue distribution, Consolidated and Contingency Funds, Finance Commission, GST Council, borrowing powers, and the constitutional right to property.',
+        keyArticles: ['Art 265: Taxes not to be imposed save by authority of law', 'Art 279A: Goods and Services Tax (GST) Council', 'Art 280: Finance Commission', 'Art 300A: No person deprived of property save by authority of law'],
+        doctrines: 'Eminent Domain Limitations, Fiscal Federalism, No Taxation Without Representation',
+        details: 'Article 300A guarantees that while property is no longer a Fundamental Right post-44th Amendment, it remains a vital constitutional right requiring explicit statutory authority and public purpose for state acquisition.',
+      },
+      {
+        part: 'Part XIII',
+        title: 'Trade, Commerce and Intercourse',
+        range: 'Articles 301-307',
+        summary: 'Guarantees freedom of trade, commerce, and intercourse throughout the territory of India to prevent internal economic barriers and discriminatory state levies.',
+        keyArticles: ['Art 301: Freedom of trade, commerce and intercourse', 'Art 302: Parliamentary power to impose public interest restrictions', 'Art 304: State restrictions on interstate trade'],
+        doctrines: 'National Common Market, Economic Unity of India',
+        details: 'Modeled after Section 92 of the Australian Constitution, Article 301 safeguards national economic integration while allowing reasonable regulatory measures under Articles 302-304.',
+      },
+      {
+        part: 'Part XIV & XIVA',
+        title: 'Services & Tribunals',
+        range: 'Articles 308-323B',
+        summary: 'Protects civil servants from arbitrary dismissal under Article 311, establishes Union and State Public Service Commissions (UPSC/SPSC), and provides administrative tribunals.',
+        keyArticles: ['Art 311: Dismissal, removal or reduction in rank of civil servants', 'Art 315: Public Service Commissions for Union and States', 'Art 323A: Administrative Tribunals (CAT/SAT)'],
+        doctrines: 'Doctrine of Pleasure Subject to Safeguards, Specialized Quasi-Judicial Adjudication',
+        details: 'Article 311 grants constitutional tenure protections to government servants, requiring formal inquiry and opportunity to be heard before termination. In L. Chandra Kumar (1997), the Supreme Court ruled that tribunal decisions are subject to High Court writ scrutiny under Article 226.',
+      },
+      {
+        part: 'Part XV',
+        title: 'Elections',
+        range: 'Articles 324-329A',
+        summary: 'Vests superintendence, direction, and control of Parliamentary and State elections in the independent Election Commission of India based on universal adult suffrage.',
+        keyArticles: ['Art 324: Superintendence of elections in Election Commission', 'Art 325: No exclusion on grounds of religion, race, caste or sex', 'Art 326: Universal Adult Suffrage (Voting at 18 years)'],
+        doctrines: 'Free and Fair Elections as Basic Structure, Universal Adult Franchise',
+        details: 'Guarantees the democratic foundation of the Republic. The Supreme Court in Indira Nehru Gandhi (1975) declared free and fair elections to be an unalterable component of the Basic Structure.',
+      },
+      {
+        part: 'Part XVI',
+        title: 'Special Provisions Relating to Certain Classes',
+        range: 'Articles 330-342A',
+        summary: 'Establishes constitutional reservations in Parliament and Assemblies, National Commissions for SC, ST, and Backward Classes, and affirmative action frameworks.',
+        keyArticles: ['Art 330: Reservation of seats for SC and ST in Lok Sabha', 'Art 338: National Commission for Scheduled Castes', 'Art 338A: National Commission for Scheduled Tribes', 'Art 342A: Socially and educationally backward classes'],
+        doctrines: 'Substantive Equality, Affirmative State Action',
+        details: 'Provides constitutional representation and institutional oversight to rectify historical marginalization and promote socio-economic equality.',
+      },
+      {
+        part: 'Part XVII',
+        title: 'Official Language',
+        range: 'Articles 343-351',
+        summary: 'Declares Hindi in Devanagari script alongside English for official Union purposes, provides for State languages, judicial language of High Courts/SC, and linguistic minority protections.',
+        keyArticles: ['Art 343: Official language of the Union', 'Art 348: Language of Supreme Court, High Courts and Acts/Bills', 'Art 350A: Primary instruction in mother tongue for linguistic minorities'],
+        doctrines: 'Linguistic Federalism & Multi-lingual Preservation',
+        details: 'Governs official administrative and judicial languages while guaranteeing the protection of linguistic diversity and minority educational rights under Article 350A.',
+      },
+      {
+        part: 'Part XVIII',
+        title: 'Emergency Provisions',
+        range: 'Articles 352-360',
+        summary: 'Empowers the Union to handle existential threats through National Emergency (War/Armed Rebellion), State Breakdown (President\'s Rule), or Financial Emergency.',
+        keyArticles: ['Art 352: Proclamation of National Emergency', 'Art 356: Failure of constitutional machinery in States (President Rule)', 'Art 359: Suspension of enforcement of Fundamental Rights (excluding Arts 20 & 21)', 'Art 360: Financial Emergency'],
+        doctrines: 'Constitutional Crisis Management, Non-Derogability of Life & Liberty (Arts 20 & 21), S.R. Bommai Safeguards on Art 356',
+        details: 'Post-44th Amendment safeguards ensure that the right to life and protection against ex-post facto laws (Articles 20 and 21) can NEVER be suspended during any emergency. In S.R. Bommai (1994), the Supreme Court subjected President\'s Rule under Article 356 to strict judicial review.',
+      },
+      {
+        part: 'Part XIX',
+        title: 'Miscellaneous',
+        range: 'Articles 361-367',
+        summary: 'Provides official immunity to the President and Governors during their tenure, protects publication of parliamentary proceedings, and defines constitutional interpretation rules.',
+        keyArticles: ['Art 361: Protection of President and Governors against criminal proceedings', 'Art 361A: Protection of publication of parliamentary proceedings', 'Art 367: Interpretation guidelines'],
+        doctrines: 'Executive Head Immunities, Press Freedom in Legislative Reporting',
+        details: 'Article 361 immunizes the President and Governors from criminal prosecution while in office. Article 361A (inserted by the 44th Amendment) gives constitutional immunity to newspapers and broadcasters for truthful reporting of legislative proceedings.',
+      },
+      {
+        part: 'Part XX',
+        title: 'Amendment of the Constitution',
+        range: 'Article 368',
+        summary: 'Defines the constituent power and procedures for amending the Constitution by special Parliamentary majority, bounded by the inviolable Basic Structure Doctrine.',
+        keyArticles: ['Art 368(1): Constituent power of Parliament to amend the Constitution', 'Art 368(2): Procedure requiring 2/3rd majority & State ratification for federal provisions'],
+        doctrines: 'Basic Structure Doctrine (Kesavananda Bharati, Minerva Mills), Constituent vs Legislative Power',
+        details: 'Article 368 governs constitutional amendments. In the landmark Kesavananda Bharati (1973) ruling, the Supreme Court held that while Parliament can amend any provision, it has no power to destroy the Basic Structure (democracy, secularism, rule of law, judicial review, federalism).',
+      },
+      {
+        part: 'Part XXI',
+        title: 'Temporary, Transitional and Special Provisions',
+        range: 'Articles 369-392',
+        summary: 'Contains transitional clauses and asymmetric regional protections for Maharashtra, Gujarat, Nagaland, Assam, Manipur, Andhra, Sikkim, Mizoram, Arunachal, and Karnataka.',
+        keyArticles: ['Art 371: Special provisions for Maharashtra and Gujarat', 'Art 371A-371J: Regional developmental boards and cultural safeguards in Northeastern & Southern states'],
+        doctrines: 'Flexible Transitional Federalism, Regional Developmental Safeguards',
+        details: 'Accommodates India\'s rich geographic, cultural, and socio-economic diversity through tailored constitutional mechanisms such as special local rights in Nagaland (371A) and Mizoram (371G).',
+      },
+      {
+        part: 'Part XXII',
+        title: 'Short Title, Commencement, Hindi Text & Repeals',
+        range: 'Articles 393-395',
+        summary: 'Officially titles the charter as \'The Constitution of India\', declares its commencement date of 26 January 1950, provides authoritative Hindi text, and formally repealed colonial statutes.',
+        keyArticles: ['Art 393: Short title — The Constitution of India', 'Art 394: Commencement on 26th January 1950 (Republic Day)', 'Art 395: Repeal of Indian Independence Act 1947 & Government of India Act 1935'],
+        doctrines: 'Constitutional Autochthony (Indigenous Origin of Sovereign Legal Order)',
+        details: 'Article 395 repealed colonial statutes including the Government of India Act, 1935, cementing the constitutional autochthony and indigenous sovereign legitimacy of the Republic of India.',
+      },
     ];
 
     const filteredParts = coiParts.filter((item) =>
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.part.toLowerCase().includes(searchQuery.toLowerCase())
+      item.part.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.doctrines.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -714,7 +1165,7 @@ export default function HomeScreen() {
 
         <View style={styles.searchBarContainer}>
           <TextInput
-            placeholder="Search Articles or Parts..."
+            placeholder="Search Parts, Articles, or Doctrines..."
             placeholderTextColor={colors.textLight}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -724,31 +1175,66 @@ export default function HomeScreen() {
 
         <ScrollView contentContainerStyle={styles.subScreenScrollContent}>
           {filteredParts.map((item, index) => (
-            <TouchableOpacity
+            <Card
               key={index}
-              style={[styles.courtItemCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => {
-                setAiTitle(item.part);
-                setAiSubtitle(item.title);
-                setAiDescription(`Articles range: ${item.range}.\n\nThis section describes the constitutional framework, provisions, and legal guidelines regarding ${item.title.toLowerCase()} in India.`);
-                setScreenState('ai-helper');
-                setSearchQuery('');
-              }}
+              style={[styles.coiCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
-              <View style={styles.courtItemLeft}>
-                <View style={[styles.courtIconContainer, { backgroundColor: colors.primaryLight }]}>
-                  <Ionicons name="document-text" size={18} color={colors.primary} />
+              {/* Header: Part Badge and Article Range */}
+              <View style={styles.coiCardHeader}>
+                <View style={[styles.coiPartBadge, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={[styles.coiPartBadgeText, { color: colors.primary }]}>{item.part}</Text>
                 </View>
-                <View style={{ marginLeft: Spacing.sm, flex: 1 }}>
-                  <Text style={[styles.courtItemText, { color: colors.text, fontWeight: '700' }]}>{item.part}</Text>
-                  <Text style={[styles.utilityLabel, { color: colors.textSecondary, fontSize: FontSize.xxs }]}>{item.title}</Text>
+                <View style={[styles.coiRangePill, { borderColor: colors.border, backgroundColor: colors.background }]}>
+                  <Text style={[styles.coiRangeText, { color: colors.textSecondary }]}>{item.range}</Text>
                 </View>
               </View>
-              <View style={{ alignItems: 'flex-end', marginRight: Spacing.sm }}>
-                <Text style={{ fontSize: 10, color: colors.textLight }}>{item.range}</Text>
+
+              {/* Title */}
+              <Text style={[styles.coiTitle, { color: colors.text }]}>{item.title}</Text>
+
+              {/* Summary */}
+              <Text style={[styles.coiSummaryText, { color: colors.textSecondary }]}>{item.summary}</Text>
+
+              {/* Landmark Articles Chips */}
+              <View style={styles.coiKeyArticlesContainer}>
+                {item.keyArticles.map((art, aIdx) => (
+                  <View
+                    key={aIdx}
+                    style={[styles.coiArticleChip, { backgroundColor: colors.background, borderColor: colors.border, borderWidth: 1 }]}
+                  >
+                    <Text style={[styles.coiArticleChipText, { color: colors.text }]}>{art}</Text>
+                  </View>
+                ))}
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
-            </TouchableOpacity>
+
+              {/* Footer: Doctrines and Explore Action */}
+              <View style={[styles.coiFooterRow, { borderTopColor: colors.border }]}>
+                <Text style={[styles.coiDoctrinesText, { color: colors.textLight }]} numberOfLines={1}>
+                  ⚖️ {item.doctrines}
+                </Text>
+                <TouchableOpacity
+                  style={styles.coiExploreAction}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setAiTitle(`${item.part}: ${item.title}`);
+                    setAiSubtitle(`Constitutional Provisions (${item.range})`);
+                    setAiDescription(
+                      `CONSTITUTION OF INDIA — ${item.part.toUpperCase()}: ${item.title.toUpperCase()}\n` +
+                      `Articles Span: ${item.range}\n\n` +
+                      `OVERVIEW & CONSTITUTIONAL FRAMEWORK:\n${item.summary}\n\n` +
+                      `KEY LANDMARK ARTICLES:\n${item.keyArticles.map((a) => `• ${a}`).join('\n')}\n\n` +
+                      `CORE CONSTITUTIONAL DOCTRINES:\n${item.doctrines}\n\n` +
+                      `IN-DEPTH STATUTORY & PROCEDURAL ANALYSIS:\n${item.details}`
+                    );
+                    setScreenState('ai-helper');
+                    setSearchQuery('');
+                  }}
+                >
+                  <Text style={[styles.coiExploreActionText, { color: colors.primary }]}>Explore Analysis</Text>
+                  <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            </Card>
           ))}
         </ScrollView>
       </View>
@@ -1638,18 +2124,29 @@ export default function HomeScreen() {
             <View style={[styles.drawerHeader, { borderBottomColor: colors.border }]}>
               <View style={styles.drawerHeaderRow}>
                 <View style={[styles.drawerAvatar, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.drawerAvatarText}>V</Text>
+                  <Text style={styles.drawerAvatarText}>
+                    {(user?.full_name?.trim()?.charAt(0) || user?.email?.trim()?.charAt(0) || 'U').toUpperCase()}
+                  </Text>
                 </View>
                 <View style={styles.drawerHeaderInfo}>
-                  <Text style={[styles.drawerName, { color: colors.text }]}>Vivek Mahajan</Text>
-                  <Text style={[styles.drawerEmail, { color: colors.textSecondary }]}>vivekmahajan045@gmail.com</Text>
+                  <Text style={[styles.drawerName, { color: colors.text }]} numberOfLines={1}>
+                    {user?.full_name || (user?.email ? user.email.split('@')[0] : 'User')}
+                  </Text>
+                  <Text style={[styles.drawerEmail, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {user?.email || 'No email registered'}
+                  </Text>
+                  {user?.role && (
+                    <View style={styles.drawerRoleBadge}>
+                      <Text style={[styles.drawerRoleText, { color: colors.primary }]}>
+                        {user.role.toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <TouchableOpacity onPress={() => fullSync().catch(console.warn)}>
                   <Ionicons name="sync-outline" size={20} color={colors.primary} />
                 </TouchableOpacity>
               </View>
-
-
             </View>
 
             {/* Drawer Options Scroll */}
@@ -1695,27 +2192,10 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))}
 
-              {/* Support & Others */}
-              <Text style={[styles.drawerSectionHeader, { color: colors.textSecondary }]}>SUPPORT & OTHERS</Text>
-
-              {[
-                { title: 'Contact Us', icon: 'headset-outline', action: () => Alert.alert('Support', 'Email us at support@ipc.ai') },
-                { title: 'AboutUs', icon: 'information-circle-outline', action: () => Alert.alert('About', 'IPC.AI is an AI-powered legal platform for Indian Police, Public and Lawyers.') },
-                { title: 'Rate our Service', icon: 'star-outline', action: () => Alert.alert('Rate', 'Thanks for supporting IPC.AI!') },
-                { title: 'Privacy Policy', icon: 'shield-checkmark-outline', action: () => Linking.openURL('https://ipc.ai/privacy') },
-              ].map((item, idx) => (
-                <TouchableOpacity key={idx} style={styles.drawerItemRow} onPress={item.action}>
-                  <View style={styles.drawerItemLeft}>
-                    <Ionicons name={item.icon as any} size={20} color={colors.text} style={{ marginRight: 12 }} />
-                    <Text style={[styles.drawerItemText, { color: colors.text }]}>{item.title}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-
               {/* Logout */}
               {isAuthenticated && (
                 <TouchableOpacity
-                  style={[styles.drawerItemRow, { marginTop: 20 }]}
+                  style={[styles.drawerItemRow, { marginTop: 24, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }]}
                   onPress={async () => {
                     await logout();
                     toggleDrawer(false);
@@ -1724,7 +2204,7 @@ export default function HomeScreen() {
                 >
                   <View style={styles.drawerItemLeft}>
                     <Ionicons name="log-out-outline" size={20} color="#EF4444" style={{ marginRight: 12 }} />
-                    <Text style={[styles.drawerItemText, { color: '#EF4444' }]}>Sign Out</Text>
+                    <Text style={[styles.drawerItemText, { color: '#EF4444', fontWeight: '700' }]}>Sign Out</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -2695,8 +3175,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   drawerEmail: {
-    fontSize: 11,
+    fontSize: FontSize.xs,
     marginTop: 2,
+  },
+  drawerRoleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.xs,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    marginTop: 4,
+  },
+  drawerRoleText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   proCard: {
     borderRadius: BorderRadius.lg,
@@ -2941,17 +3434,25 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     marginBottom: Spacing.md,
   },
+  comparisonHeader: {
+    marginBottom: Spacing.sm,
+    alignItems: 'center',
+  },
+  comparisonSubtitle: {
+    fontSize: FontSize.xs,
+    marginTop: 2,
+    textAlign: 'center',
+  },
   comparisonCardTitle: {
     fontSize: FontSize.md,
     fontWeight: '700',
-    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   comparisonRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.xl,
+    gap: Spacing.md,
   },
   comparisonBadgeNew: {
     flex: 1,
@@ -2972,9 +3473,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 2,
   },
+  badgeSubText: {
+    fontSize: FontSize.xxs,
+    color: '#FFFFFF',
+    marginTop: 2,
+    opacity: 0.9,
+    fontWeight: '600',
+  },
   vsText: {
     fontSize: FontSize.md,
     fontWeight: '600',
+  },
+  comparisonMiddleButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    minWidth: 70,
+  },
+  comparisonMiddleCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  comparisonMiddleText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  comparisonMiddleSubText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '700',
+    marginTop: 1,
   },
   comparisonBadgeOld: {
     flex: 1,
@@ -2992,6 +3527,40 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '800',
     marginTop: 2,
+  },
+  badgeSubTextOld: {
+    fontSize: FontSize.xxs,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  comparisonHighlightBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: Spacing.md,
+  },
+  comparisonHighlightText: {
+    fontSize: FontSize.xs,
+    flex: 1,
+    lineHeight: 16,
+  },
+  openConverterBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: Spacing.sm,
+  },
+  openConverterBarText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
   },
 
   // Court Registry styles
@@ -3033,6 +3602,70 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '600',
   },
+  courtCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  courtCardTop: {
+    marginBottom: Spacing.sm,
+  },
+  courtCardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  courtMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  courtMetaText: {
+    fontSize: FontSize.xs,
+    lineHeight: 16,
+  },
+  courtOverviewText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  courtServicesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  courtServiceChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  courtServiceChipText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '600',
+  },
+  courtActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    paddingTop: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  courtActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.xs,
+  },
+  courtActionText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
   floatingSearchJudgments: {
     position: 'absolute',
     bottom: 24,
@@ -3050,6 +3683,88 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: FontSize.sm,
+  },
+
+  // Constitution of India (COI) styles
+  coiCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  coiCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  coiPartBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  coiPartBadgeText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  coiRangePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+  },
+  coiRangeText: {
+    fontSize: FontSize.xxs,
+    fontWeight: '600',
+  },
+  coiTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  coiSummaryText: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    marginBottom: Spacing.sm,
+  },
+  coiKeyArticlesContainer: {
+    flexDirection: 'column',
+    gap: 4,
+    marginBottom: Spacing.sm,
+  },
+  coiArticleChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  coiArticleChipText: {
+    fontSize: FontSize.xxs,
+    lineHeight: 14,
+  },
+  coiFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    paddingTop: Spacing.xs,
+    marginTop: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  coiDoctrinesText: {
+    fontSize: FontSize.xxs,
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  coiExploreAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  coiExploreActionText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
   },
 
   // Quick Reference sub-screen styles

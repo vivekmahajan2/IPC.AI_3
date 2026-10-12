@@ -1,0 +1,518 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import api from '../../../lib/api';
+import Input from '../../../components/ui/Input';
+import Button from '../../../components/ui/Button';
+import Card from '../../../components/ui/Card';
+import { useTheme } from '../../../context/ThemeContext';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { IncidentDetails } from '../../../types';
+import { saveOfflineFIR } from '../../../lib/db';
+
+// Simple UUID v4 generator (no external dependency needed)
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+export default function NewFIRScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { colors } = useTheme();
+
+  const [title, setTitle] = useState('');
+  const [sections, setSections] = useState('');
+  const [details, setDetails] = useState<IncidentDetails>({
+    complainant_name: '',
+    complainant_father_name: '',
+    complainant_address: '',
+    complainant_phone: '',
+    incident_date: '',
+    incident_time: '',
+    incident_place: '',
+    district: '',
+    accused_name: '',
+    accused_description: '',
+    description: '',
+    witness_details: '',
+    property_stolen: '',
+    property_value: '',
+  });
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const steps = ['Basic Info', 'Complainant', 'Incident', 'Accused & Sections'];
+
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+
+  const updateDetail = (key: keyof IncidentDetails, value: string) => {
+    setDetails((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSuggestSections = async () => {
+    if (!details.description?.trim()) {
+      Alert.alert(
+        'Incident Description Required',
+        'Please enter the offence description in Step 3 (Incident) first so the AI can analyze the facts.'
+      );
+      return;
+    }
+    setIsSuggesting(true);
+    try {
+      const res = await api.post('/legal/suggest-sections', {
+        description: details.description,
+        title: title || 'FIR Offence',
+      });
+      const suggestedList: string[] = res.data?.suggested_sections || [];
+      const detailsList: any[] = res.data?.details || [];
+      setSuggestions(detailsList);
+
+      if (suggestedList.length > 0) {
+        const currentArr = sections
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const combined = Array.from(new Set([...currentArr, ...suggestedList]));
+        setSections(combined.join(', '));
+        Alert.alert(
+          'AI Suggested Sections',
+          `Added ${suggestedList.length} applicable sections (BNS/IPC) based on your incident description.`
+        );
+      } else {
+        Alert.alert('No Direct Matches', 'No specific statutory sections identified automatically. Please enter them manually.');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.detail || 'Failed to analyze incident with AI.');
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const sectionsArray = sections
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const clientUuid = generateUUID();
+      const firData = {
+        client_uuid: clientUuid,
+        title,
+        incident_details: details,
+        sections_applied: sectionsArray,
+      };
+
+      try {
+        // Try to create on the server
+        return await api.post('/fir', firData);
+      } catch (error: any) {
+        // If network error, save offline
+        if (!error?.response && Platform.OS !== 'web') {
+          saveOfflineFIR(firData);
+          return { data: { ...firData, id: -1, status: 'draft', offline: true } };
+        }
+        throw error;
+      }
+    },
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['firs'] });
+      queryClient.invalidateQueries({ queryKey: ['firs-recent'] });
+      const isOffline = result?.data?.offline;
+      Alert.alert(
+        'Success',
+        isOffline
+          ? 'FIR draft saved offline. It will sync when you reconnect.'
+          : 'FIR draft created successfully!',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    },
+    onError: (error: any) => {
+      Alert.alert('Error', error?.response?.data?.detail || 'Failed to create FIR');
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!title.trim()) {
+      Alert.alert('Validation', 'Please enter a title for the FIR');
+      return;
+    }
+    createMutation.mutate();
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <View>
+            <Input
+              label="FIR Title"
+              placeholder="e.g., Theft at Main Market, Ward 5"
+              value={title}
+              onChangeText={setTitle}
+              required
+            />
+            <Input
+              label="Date of FIR"
+              placeholder="DD-MM-YYYY"
+              value={details.incident_date || ''}
+              onChangeText={(v) => updateDetail('incident_date', v)}
+            />
+            <Input
+              label="District"
+              placeholder="e.g., Central Delhi"
+              value={details.district || ''}
+              onChangeText={(v) => updateDetail('district', v)}
+            />
+          </View>
+        );
+      case 1:
+        return (
+          <View>
+            <Input
+              label="Complainant Name"
+              placeholder="Full name"
+              value={details.complainant_name || ''}
+              onChangeText={(v) => updateDetail('complainant_name', v)}
+            />
+            <Input
+              label="Father's / Husband's Name"
+              placeholder="Full name"
+              value={details.complainant_father_name || ''}
+              onChangeText={(v) => updateDetail('complainant_father_name', v)}
+            />
+            <Input
+              label="Address"
+              placeholder="Full address"
+              value={details.complainant_address || ''}
+              onChangeText={(v) => updateDetail('complainant_address', v)}
+              multiline
+              numberOfLines={3}
+            />
+            <Input
+              label="Phone"
+              placeholder="Phone number"
+              value={details.complainant_phone || ''}
+              onChangeText={(v) => updateDetail('complainant_phone', v)}
+              keyboardType="phone-pad"
+            />
+          </View>
+        );
+      case 2:
+        return (
+          <View>
+            <Input
+              label="Time of Incident"
+              placeholder="HH:MM"
+              value={details.incident_time || ''}
+              onChangeText={(v) => updateDetail('incident_time', v)}
+            />
+            <Input
+              label="Place of Occurrence"
+              placeholder="Exact location"
+              value={details.incident_place || ''}
+              onChangeText={(v) => updateDetail('incident_place', v)}
+            />
+            <Input
+              label="Description of Offence"
+              placeholder="Detailed description of the incident..."
+              value={details.description || ''}
+              onChangeText={(v) => updateDetail('description', v)}
+              multiline
+              numberOfLines={6}
+              style={{ minHeight: 120, textAlignVertical: 'top' }}
+            />
+            <Input
+              label="Witness Details"
+              placeholder="Names and details of witnesses"
+              value={details.witness_details || ''}
+              onChangeText={(v) => updateDetail('witness_details', v)}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+        );
+      case 3:
+        return (
+          <View>
+            <Input
+              label="Name of Accused"
+              placeholder="Full name (if known)"
+              value={details.accused_name || ''}
+              onChangeText={(v) => updateDetail('accused_name', v)}
+            />
+            <Input
+              label="Description of Accused"
+              placeholder="Physical description, identifying marks"
+              value={details.accused_description || ''}
+              onChangeText={(v) => updateDetail('accused_description', v)}
+              multiline
+              numberOfLines={3}
+            />
+            <Input
+              label="Property Stolen / Involved"
+              placeholder="Description of property"
+              value={details.property_stolen || ''}
+              onChangeText={(v) => updateDetail('property_stolen', v)}
+            />
+            <Input
+              label="Estimated Value (₹)"
+              placeholder="e.g., 50000"
+              value={details.property_value || ''}
+              onChangeText={(v) => updateDetail('property_value', v)}
+              keyboardType="numeric"
+            />
+            <View style={{ marginVertical: 10 }}>
+              <TouchableOpacity
+                onPress={handleSuggestSections}
+                disabled={isSuggesting}
+                style={{
+                  backgroundColor: colors.primaryLight,
+                  borderColor: colors.primary,
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>
+                  {isSuggesting ? 'Analyzing Incident with AI...' : 'Suggest Applicable Sections with AI'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {suggestions.length > 0 && (
+              <View style={{ marginBottom: 12, backgroundColor: colors.surface, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 8 }}>
+                  AI Legal Rationale:
+                </Text>
+                {suggestions.map((s, idx) => (
+                  <View key={idx} style={{ marginBottom: 6 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: colors.primary }}>
+                      {s.section} — {s.title}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      {s.reason}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <Input
+              label="Sections Applied"
+              placeholder="e.g., BNS 303(2), BNS 305, IPC 379"
+              value={sections}
+              onChangeText={setSections}
+              hint="Comma-separated section numbers (auto-filled by AI or edited manually)"
+            />
+          </View>
+        );
+    }
+  };
+
+  return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>New FIR Draft</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      {/* Step indicators */}
+      <View style={styles.stepsRow}>
+        {steps.map((step, index) => (
+          <TouchableOpacity
+            key={step}
+            style={styles.stepItem}
+            onPress={() => setCurrentStep(index)}
+          >
+            <View
+              style={[
+                styles.stepDot,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                index === currentStep && { backgroundColor: colors.primary, borderColor: colors.primary },
+                index < currentStep && { backgroundColor: colors.success, borderColor: colors.success },
+              ]}
+            >
+              {index < currentStep ? (
+                <Ionicons name="checkmark" size={12} color={colors.textOnPrimary} />
+              ) : (
+                <Text
+                  style={[
+                    styles.stepNumber,
+                    { color: colors.textSecondary },
+                    index === currentStep && { color: colors.textOnPrimary, fontWeight: '700' },
+                  ]}
+                >
+                  {index + 1}
+                </Text>
+              )}
+            </View>
+            <Text
+              style={[
+                styles.stepLabel,
+                { color: colors.textSecondary },
+                index === currentStep && { color: colors.primary, fontWeight: '700' },
+              ]}
+            >
+              {step}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Form */}
+      <ScrollView
+        style={styles.form}
+        contentContainerStyle={styles.formContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Card>
+          {renderStepContent()}
+        </Card>
+      </ScrollView>
+
+      {/* Navigation Buttons */}
+      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        {currentStep > 0 && (
+          <Button
+            title="Previous"
+            variant="outline"
+            onPress={() => setCurrentStep((p) => p - 1)}
+            style={styles.navButton}
+          />
+        )}
+        {currentStep < steps.length - 1 ? (
+          <Button
+            title="Next"
+            onPress={() => setCurrentStep((p) => p + 1)}
+            style={[styles.navButton, { flex: currentStep === 0 ? 1 : undefined }]}
+          />
+        ) : (
+          <Button
+            title="Save Draft"
+            onPress={handleSubmit}
+            loading={createMutation.isPending}
+            icon={<Ionicons name="save-outline" size={18} color={colors.textOnPrimary} />}
+            style={styles.navButton}
+          />
+        )}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
+  backButton: {
+    padding: Spacing.xs,
+  },
+  headerTitle: {
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+
+  // Steps
+  stepsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.lg,
+    gap: Spacing.xs,
+  },
+  stepItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stepDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  stepDotActive: {
+    backgroundColor: Colors.primary,
+  },
+  stepDotDone: {
+    backgroundColor: Colors.success,
+  },
+  stepNumber: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  stepNumberActive: {
+    color: Colors.textOnPrimary,
+  },
+  stepLabel: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  stepLabelActive: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+
+  // Form
+  form: {
+    flex: 1,
+  },
+  formContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
+  },
+
+  // Bottom bar
+  bottomBar: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: Spacing.md,
+  },
+  navButton: {
+    flex: 1,
+  },
+});

@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, BackHandler } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
-import { Spacing, FontSize, Shadow } from '../../constants/theme';
+import { Spacing, FontSize, Shadow, BorderRadius } from '../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
@@ -22,18 +23,44 @@ export default function Header({
   style,
 }: HeaderProps) {
   const { colors } = useTheme();
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
+  useEffect(() => {
+    if (!showBack) return;
+    const onHardwareBack = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onHardwareBack);
+    return () => sub.remove();
+  }, [showBack, onBack]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }, style]}>
       <View style={styles.leftSection}>
         {showBack && (
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
         )}
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>
+          {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>{subtitle}</Text>}
         </View>
       </View>
       {rightAction && <View style={styles.rightSection}>{rightAction}</View>}
@@ -46,9 +73,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    paddingTop: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    minHeight: 56,
     ...Shadow.sm,
   },
   leftSection: {
@@ -57,15 +84,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    marginRight: Spacing.md,
-    padding: Spacing.xs,
+    marginRight: Spacing.sm,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
   },
   title: {
-    fontSize: FontSize.xl,
+    fontSize: FontSize.lg,
     fontWeight: '700',
   },
   subtitle: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.xs,
     marginTop: 2,
   },
   rightSection: {

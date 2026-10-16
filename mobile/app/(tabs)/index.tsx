@@ -17,6 +17,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   Share,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -216,6 +217,20 @@ export default function HomeScreen() {
       }
     }).catch(console.warn);
   }, []);
+
+  // Handle Android hardware back button for sub-screens
+  useEffect(() => {
+    const handleHardwareBack = () => {
+      if (screenState !== 'dashboard') {
+        setScreenState('dashboard');
+        setSearchQuery('');
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleHardwareBack);
+    return () => sub.remove();
+  }, [screenState]);
 
   // Fetch FIRs query (used in background)
   const { data: firs, isLoading: isFirsLoading, refetch: refetchFirs } = useQuery({
@@ -537,13 +552,20 @@ export default function HomeScreen() {
     ];
 
     return (
-      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.subScreenHeader}>
-          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+          <TouchableOpacity
+            onPress={() => setScreenState('dashboard')}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.subScreenTitle, { color: colors.text }]}>ACT COMPARISON</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.subScreenTitle, { color: colors.text }]}>ACT COMPARISON</Text>
+          </View>
+          <View style={{ width: 44 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.subScreenScrollContent}>
@@ -632,7 +654,7 @@ export default function HomeScreen() {
             </Card>
           ))}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -780,13 +802,20 @@ export default function HomeScreen() {
     );
 
     return (
-      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.subScreenHeader}>
-          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+          <TouchableOpacity
+            onPress={() => setScreenState('dashboard')}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.subScreenTitle, { color: colors.text }]}>Court Registry</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.subScreenTitle, { color: colors.text }]}>Court Registry</Text>
+          </View>
+          <View style={{ width: 44 }} />
         </View>
 
         <View style={styles.searchBarContainer}>
@@ -919,7 +948,7 @@ export default function HomeScreen() {
           <Ionicons name="search" size={18} color="#FFFFFF" />
           <Text style={styles.floatingSearchJudgmentsText}>Search All Judgments</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -1152,15 +1181,20 @@ export default function HomeScreen() {
     );
 
     return (
-      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.subScreenHeader}>
-          <TouchableOpacity onPress={() => { setScreenState('dashboard'); setSearchQuery(''); }} style={styles.backButton}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+          <TouchableOpacity
+            onPress={() => { setScreenState('dashboard'); setSearchQuery(''); }}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>Constitution of India</Text>
           </View>
-          <View style={{ width: 40 }} />
+          <View style={{ width: 44 }} />
         </View>
 
         <View style={styles.searchBarContainer}>
@@ -1237,7 +1271,7 @@ export default function HomeScreen() {
             </Card>
           ))}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -1365,16 +1399,26 @@ export default function HomeScreen() {
     ];
 
     return (
-      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
-        <View style={styles.subScreenHeader}>
-          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+          <TouchableOpacity
+            onPress={() => setScreenState('dashboard')}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={[styles.subScreenTitle, { color: colors.text, fontSize: FontSize.lg }]}>Bare Acts</Text>
             <Text style={{ fontSize: 10, color: colors.textSecondary }}>On the basis of Indian Law</Text>
           </View>
-          <TouchableOpacity onPress={() => Alert.alert('Bookmarks', 'No bookmarked Bare Acts yet!')} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => Alert.alert('Bookmarks', 'No bookmarked Bare Acts yet!')}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="bookmark" size={22} color={colors.primary} />
           </TouchableOpacity>
         </View>
@@ -1443,7 +1487,7 @@ export default function HomeScreen() {
             <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
           </TouchableOpacity>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -1459,10 +1503,15 @@ export default function HomeScreen() {
     }
 
     return (
-      <View style={[styles.subScreenContainer, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safe, { backgroundColor: colors.background }]}>
         {/* Header */}
         <View style={[styles.subScreenHeader, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
-          <TouchableOpacity onPress={() => setScreenState('dashboard')} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => setScreenState('dashboard')}
+            style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -1478,6 +1527,8 @@ export default function HomeScreen() {
               setAiWorkspaceError(null);
             }}
             style={styles.backButton}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.7}
           >
             <Ionicons name="refresh-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -1782,7 +1833,7 @@ export default function HomeScreen() {
             </View>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -3417,7 +3468,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   backButton: {
-    padding: Spacing.xs,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
   },
   subScreenTitle: {
     fontSize: FontSize.md,

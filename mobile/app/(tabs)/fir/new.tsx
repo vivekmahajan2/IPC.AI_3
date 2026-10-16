@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -36,6 +37,27 @@ export default function NewFIRScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
 
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/fir');
+    }
+  };
+
+  useEffect(() => {
+    const onHardwareBack = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onHardwareBack);
+    return () => sub.remove();
+  }, [currentStep]);
+
   const [title, setTitle] = useState('');
   const [sections, setSections] = useState('');
   const [details, setDetails] = useState<IncidentDetails>({
@@ -55,7 +77,6 @@ export default function NewFIRScreen() {
     property_value: '',
   });
 
-  const [currentStep, setCurrentStep] = useState(0);
   const steps = ['Basic Info', 'Complainant', 'Incident', 'Accused & Sections'];
 
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -336,11 +357,16 @@ export default function NewFIRScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+          activeOpacity={0.7}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>New FIR Draft</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 44 }} />
       </View>
 
       {/* Step indicators */}
@@ -441,7 +467,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   backButton: {
-    padding: Spacing.xs,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.md,
   },
   headerTitle: {
     fontSize: FontSize.xl,

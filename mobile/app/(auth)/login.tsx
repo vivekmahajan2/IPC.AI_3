@@ -126,6 +126,8 @@ export default function LoginScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
         >
           {/* Logo Section */}
           <View style={styles.logoSection}>
@@ -336,6 +338,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xxl,
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
   },
 
   // Logo

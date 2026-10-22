@@ -175,7 +175,11 @@ export default function ComplaintsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+      >
         {activeTab === 'new' ? (
           /* Complaint Filing Form */
           <Card>
@@ -340,6 +344,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   backButton: {
     width: 44,
@@ -355,6 +362,9 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   tabButton: {
     flex: 1,
@@ -368,6 +378,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxxl,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   formTitle: {
     fontSize: FontSize.xl,

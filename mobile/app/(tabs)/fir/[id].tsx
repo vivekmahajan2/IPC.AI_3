@@ -189,7 +189,11 @@ export default function FIRDetailScreen() {
         <StatusBadge status={fir.status} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+      >
         {/* Title & FIR Number */}
         <Card style={styles.section}>
           <Text style={[styles.firTitle, { color: colors.text }]}>{fir.title}</Text>
@@ -448,6 +452,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   backBtn: {
     width: 44,
@@ -468,6 +475,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl * 2,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   section: {
     marginBottom: Spacing.lg,

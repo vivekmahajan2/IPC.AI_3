@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,13 @@ export default function OtherLawScreen() {
     : null;
   const { width: windowWidth } = useWindowDimensions();
   const { colors, isDark } = useTheme();
+
+  const { catCardWidth } = useMemo(() => {
+    const contentWidth = Math.min(windowWidth, 1100);
+    const cols = contentWidth > 900 ? 4 : contentWidth > 540 ? 3 : 2;
+    const width = Math.floor((contentWidth - Spacing.xl * 2 - Spacing.md * (cols - 1) - 4) / cols);
+    return { catCardWidth: width };
+  }, [windowWidth]);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -223,7 +230,11 @@ export default function OtherLawScreen() {
                 <Text style={{ marginTop: 10, color: colors.textSecondary }}>No statutes found matching query.</Text>
               </View>
             ) : (
-              <ScrollView contentContainerStyle={styles.listContent}>
+              <ScrollView
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                scrollEventThrottle={16}
+              >
                 {filteredStatutes.map((statute: OtherLawStatute) => (
                   <TouchableOpacity
                     key={statute.id}
@@ -373,12 +384,16 @@ export default function OtherLawScreen() {
             onBack={() => router.back()}
           />
 
-          <ScrollView contentContainerStyle={styles.listContent}>
+          <ScrollView
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+          >
             <View style={styles.grid}>
               {otherCategories.map((cat, idx) => (
                 <TouchableOpacity
                   key={idx}
-                  style={[styles.gridCard, { width: (windowWidth - Spacing.xl * 2 - Spacing.md) / 2 - 2, backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.gridCard, { width: catCardWidth, backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => setSelectedCategory(cat.name)}
                 >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm }}>
@@ -418,13 +433,15 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl * 2,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
 
   // Grid list
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
     gap: Spacing.md,
   },
   gridCard: {

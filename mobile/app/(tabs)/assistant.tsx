@@ -104,6 +104,9 @@ export default function AssistantScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ChatBubble message={item} />}
         contentContainerStyle={styles.messageList}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={Platform.OS === 'android'}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
         ListHeaderComponent={
           messages.length <= 1 ? (
@@ -179,6 +182,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -206,6 +212,9 @@ const styles = StyleSheet.create({
   // Messages
   messageList: {
     paddingVertical: Spacing.md,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
 
   // Suggestions
@@ -258,6 +267,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   input: {
     flex: 1,

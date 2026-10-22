@@ -269,7 +269,11 @@ export default function LawyersScreen() {
             />
           </View>
 
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+          >
             {isLawyersLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -417,7 +421,11 @@ export default function LawyersScreen() {
 
       {/* TAB 2: CASE NOTES DIARY */}
       {activeTab === 'notes' && (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+        >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
             <View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>My Trial & Case Diary</Text>
@@ -512,7 +520,11 @@ export default function LawyersScreen() {
 
       {/* TAB 3: BOOKMARKED PRECEDENTS */}
       {activeTab === 'bookmarks' && (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+        >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
             <View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Bookmarked Precedents</Text>
@@ -712,6 +724,9 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   tabItem: {
     flex: 1,
@@ -727,6 +742,9 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   searchInput: {
     marginBottom: 0,
@@ -734,6 +752,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   sectionTitle: {
     fontSize: FontSize.md,

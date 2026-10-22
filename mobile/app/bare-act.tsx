@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -241,6 +242,12 @@ export default function BareActScreen() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderSectionItem}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS === 'android'}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <EmptyState
               icon="search-outline"
@@ -262,6 +269,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   centerContainer: {
     flex: 1,
@@ -277,6 +287,9 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
     gap: Spacing.md,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   sectionCard: {
     borderWidth: 1,

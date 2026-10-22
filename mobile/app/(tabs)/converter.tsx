@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -383,6 +384,11 @@ export default function ConverterScreen() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderMapping}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === 'android'}
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             debouncedQuery ? (
@@ -414,6 +420,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xs,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   headerTitle: {
     fontSize: FontSize.xxl,
@@ -436,6 +445,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   toggleSide: {
     flex: 1,
@@ -462,6 +474,9 @@ const styles = StyleSheet.create({
   },
   pairSelectorContainer: {
     marginVertical: Spacing.xs,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   pairScroll: {
     paddingHorizontal: Spacing.xl,
@@ -480,11 +495,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xs,
     marginBottom: Spacing.xs,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   listContent: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxxl,
+    width: '100%',
+    maxWidth: 1100,
+    alignSelf: 'center',
   },
   centerContainer: {
     flex: 1,

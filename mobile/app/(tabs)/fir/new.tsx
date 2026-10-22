@@ -417,6 +417,7 @@ export default function NewFIRScreen() {
         style={styles.form}
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
       >
         <Card>
@@ -465,6 +466,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   backButton: {
     width: 44,
@@ -485,6 +489,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.lg,
     gap: Spacing.xs,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   stepItem: {
     flex: 1,
@@ -530,6 +537,9 @@ const styles = StyleSheet.create({
   formContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxxl,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
 
   // Bottom bar
@@ -541,6 +551,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     gap: Spacing.md,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   navButton: {
     flex: 1,

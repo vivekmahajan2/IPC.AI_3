@@ -90,6 +90,7 @@ export default function JudgmentsScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
@@ -197,6 +198,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
     gap: Spacing.sm,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   searchInput: {
     flex: 1,
@@ -214,6 +218,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   loadingContainer: {
     alignItems: 'center',

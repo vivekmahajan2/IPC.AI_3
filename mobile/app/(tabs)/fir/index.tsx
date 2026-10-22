@@ -140,12 +140,15 @@ export default function FIRListScreen() {
         renderItem={renderFIRItem}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+<<<<<<< HEAD
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={5}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         ListEmptyComponent={
           !isLoading ? (
             <EmptyState
@@ -182,9 +185,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerTitle: {
     fontSize: FontSize.xxl,
@@ -205,8 +211,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.md,
     gap: Spacing.sm,
+<<<<<<< HEAD
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   filterChip: {
     paddingHorizontal: Spacing.lg,
@@ -233,9 +242,12 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxxl,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
 
   // FIR Card

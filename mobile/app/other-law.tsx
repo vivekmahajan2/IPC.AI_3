@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useMemo } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 import {
   View,
   Text,
@@ -32,6 +36,7 @@ export default function OtherLawScreen() {
   const { width: windowWidth } = useWindowDimensions();
   const { colors, isDark } = useTheme();
 
+<<<<<<< HEAD
   const { catCardWidth } = useMemo(() => {
     const contentWidth = Math.min(windowWidth, 1100);
     const cols = contentWidth > 900 ? 4 : contentWidth > 540 ? 3 : 2;
@@ -39,6 +44,8 @@ export default function OtherLawScreen() {
     return { catCardWidth: width };
   }, [windowWidth]);
 
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,11 +237,15 @@ export default function OtherLawScreen() {
                 <Text style={{ marginTop: 10, color: colors.textSecondary }}>No statutes found matching query.</Text>
               </View>
             ) : (
+<<<<<<< HEAD
               <ScrollView
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 scrollEventThrottle={16}
               >
+=======
+              <ScrollView contentContainerStyle={styles.listContent}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
                 {filteredStatutes.map((statute: OtherLawStatute) => (
                   <TouchableOpacity
                     key={statute.id}
@@ -384,16 +395,24 @@ export default function OtherLawScreen() {
             onBack={() => router.back()}
           />
 
+<<<<<<< HEAD
           <ScrollView
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
           >
+=======
+          <ScrollView contentContainerStyle={styles.listContent}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
             <View style={styles.grid}>
               {otherCategories.map((cat, idx) => (
                 <TouchableOpacity
                   key={idx}
+<<<<<<< HEAD
                   style={[styles.gridCard, { width: catCardWidth, backgroundColor: colors.surface, borderColor: colors.border }]}
+=======
+                  style={[styles.gridCard, { width: (windowWidth - Spacing.xl * 2 - Spacing.md) / 2 - 2, backgroundColor: colors.surface, borderColor: colors.border }]}
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
                   onPress={() => setSelectedCategory(cat.name)}
                 >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.sm }}>
@@ -433,15 +452,22 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl * 2,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
 
   // Grid list
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+<<<<<<< HEAD
+=======
+    justifyContent: 'space-between',
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
     gap: Spacing.md,
   },
   gridCard: {

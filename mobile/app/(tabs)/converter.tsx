@@ -7,7 +7,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+<<<<<<< HEAD
   Platform,
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -384,11 +387,14 @@ export default function ConverterScreen() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderMapping}
           contentContainerStyle={styles.listContent}
+<<<<<<< HEAD
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={Platform.OS === 'android'}
           showsVerticalScrollIndicator={false}
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             debouncedQuery ? (
@@ -420,9 +426,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xs,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerTitle: {
     fontSize: FontSize.xxl,
@@ -445,9 +454,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   toggleSide: {
     flex: 1,
@@ -474,9 +486,12 @@ const styles = StyleSheet.create({
   },
   pairSelectorContainer: {
     marginVertical: Spacing.xs,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   pairScroll: {
     paddingHorizontal: Spacing.xl,
@@ -495,17 +510,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xs,
     marginBottom: Spacing.xs,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   listContent: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxxl,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   centerContainer: {
     flex: 1,

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 import {
   View,
   Text,
@@ -8,7 +12,10 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+<<<<<<< HEAD
   BackHandler,
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,6 +37,7 @@ export default function ComplaintsScreen() {
   const { colors } = useTheme();
   const queryClient = useQueryClient();
 
+<<<<<<< HEAD
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -47,6 +55,8 @@ export default function ComplaintsScreen() {
     return () => sub.remove();
   }, []);
 
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   const isOfficer = ['police', 'superior', 'admin'].includes(user?.role || '');
 
   const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
@@ -141,18 +151,26 @@ export default function ComplaintsScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Top Header */}
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+<<<<<<< HEAD
         <TouchableOpacity
           onPress={handleBack}
           style={styles.backButton}
           hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
           activeOpacity={0.7}
         >
+=======
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
           {isOfficer ? 'Citizen Complaints Desk' : 'My Legal Complaints'}
         </Text>
+<<<<<<< HEAD
         <View style={{ width: 44 }} />
+=======
+        <View style={{ width: 40 }} />
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
       </View>
 
       {/* Tabs */}
@@ -175,11 +193,15 @@ export default function ComplaintsScreen() {
         </TouchableOpacity>
       </View>
 
+<<<<<<< HEAD
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
+=======
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         {activeTab === 'new' ? (
           /* Complaint Filing Form */
           <Card>
@@ -344,6 +366,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
@@ -354,6 +377,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.md,
+=======
+  },
+  backButton: {
+    padding: Spacing.xs,
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerTitle: {
     fontSize: FontSize.lg,
@@ -362,9 +390,12 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   tabButton: {
     flex: 1,
@@ -378,9 +409,12 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
     paddingBottom: Spacing.xxxl,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   formTitle: {
     fontSize: FontSize.xl,

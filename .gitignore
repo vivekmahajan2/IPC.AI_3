@@ -167,3 +167,13 @@ scratch/
 **/scratch/
 tmp/
 **/tmp/
+<<<<<<< HEAD
+=======
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+backend/.env
+
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975

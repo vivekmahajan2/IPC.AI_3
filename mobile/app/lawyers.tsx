@@ -269,11 +269,15 @@ export default function LawyersScreen() {
             />
           </View>
 
+<<<<<<< HEAD
           <ScrollView
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
           >
+=======
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
             {isLawyersLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -421,11 +425,15 @@ export default function LawyersScreen() {
 
       {/* TAB 2: CASE NOTES DIARY */}
       {activeTab === 'notes' && (
+<<<<<<< HEAD
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
         >
+=======
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
             <View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>My Trial & Case Diary</Text>
@@ -520,11 +528,15 @@ export default function LawyersScreen() {
 
       {/* TAB 3: BOOKMARKED PRECEDENTS */}
       {activeTab === 'bookmarks' && (
+<<<<<<< HEAD
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
         >
+=======
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
             <View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Bookmarked Precedents</Text>
@@ -724,9 +736,12 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   tabItem: {
     flex: 1,
@@ -742,9 +757,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   searchInput: {
     marginBottom: 0,
@@ -752,9 +770,12 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   sectionTitle: {
     fontSize: FontSize.md,

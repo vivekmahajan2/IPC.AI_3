@@ -6,7 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+<<<<<<< HEAD
   Platform,
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -242,12 +245,15 @@ export default function BareActScreen() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderSectionItem}
           contentContainerStyle={styles.listContent}
+<<<<<<< HEAD
           initialNumToRender={15}
           maxToRenderPerBatch={15}
           windowSize={7}
           removeClippedSubviews={Platform.OS === 'android'}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           ListEmptyComponent={
             <EmptyState
               icon="search-outline"
@@ -269,9 +275,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   centerContainer: {
     flex: 1,
@@ -287,9 +296,12 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
     gap: Spacing.md,
+<<<<<<< HEAD
     width: '100%',
     maxWidth: 1100,
     alignSelf: 'center',
+=======
+>>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   sectionCard: {
     borderWidth: 1,

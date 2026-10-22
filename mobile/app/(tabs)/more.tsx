@@ -75,11 +75,7 @@ export default function MoreScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-<<<<<<< HEAD
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} scrollEventThrottle={16}>
-=======
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         {/* User Info */}
         <View style={[styles.userCard, { backgroundColor: colors.surface }]}>
           <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
@@ -142,12 +138,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 700,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
 
   // User card

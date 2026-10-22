@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-=======
-import React, { useState } from 'react';
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 import {
   View,
   Text,
@@ -11,10 +7,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
-<<<<<<< HEAD
   BackHandler,
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -44,7 +37,6 @@ export default function NewFIRScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
 
-<<<<<<< HEAD
   const [currentStep, setCurrentStep] = useState(0);
 
   const handleBack = () => {
@@ -66,8 +58,6 @@ export default function NewFIRScreen() {
     return () => sub.remove();
   }, [currentStep]);
 
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   const [title, setTitle] = useState('');
   const [sections, setSections] = useState('');
   const [details, setDetails] = useState<IncidentDetails>({
@@ -87,10 +77,6 @@ export default function NewFIRScreen() {
     property_value: '',
   });
 
-<<<<<<< HEAD
-=======
-  const [currentStep, setCurrentStep] = useState(0);
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   const steps = ['Basic Info', 'Complainant', 'Incident', 'Accused & Sections'];
 
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -371,7 +357,6 @@ export default function NewFIRScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-<<<<<<< HEAD
         <TouchableOpacity
           onPress={handleBack}
           style={styles.backButton}
@@ -382,13 +367,6 @@ export default function NewFIRScreen() {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>New FIR Draft</Text>
         <View style={{ width: 44 }} />
-=======
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>New FIR Draft</Text>
-        <View style={{ width: 40 }} />
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
       </View>
 
       {/* Step indicators */}
@@ -439,10 +417,7 @@ export default function NewFIRScreen() {
         style={styles.form}
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
-<<<<<<< HEAD
         scrollEventThrottle={16}
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         keyboardShouldPersistTaps="handled"
       >
         <Card>
@@ -491,7 +466,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
@@ -502,11 +476,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.md,
-=======
-  },
-  backButton: {
-    padding: Spacing.xs,
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerTitle: {
     fontSize: FontSize.xl,
@@ -520,12 +489,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.lg,
     gap: Spacing.xs,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   stepItem: {
     flex: 1,
@@ -571,12 +537,9 @@ const styles = StyleSheet.create({
   formContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxxl,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
 
   // Bottom bar
@@ -588,12 +551,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     gap: Spacing.md,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   navButton: {
     flex: 1,

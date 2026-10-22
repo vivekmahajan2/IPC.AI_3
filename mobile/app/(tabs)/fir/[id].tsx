@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-=======
-import React, { useState } from 'react';
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 import {
   View,
   Text,
@@ -12,10 +8,7 @@ import {
   TouchableOpacity,
   Linking,
   Platform,
-<<<<<<< HEAD
   BackHandler,
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -38,7 +31,6 @@ export default function FIRDetailScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
 
-<<<<<<< HEAD
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -56,8 +48,6 @@ export default function FIRDetailScreen() {
     return () => sub.remove();
   }, []);
 
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   const { data: fir, isLoading } = useQuery({
     queryKey: ['fir', id],
     queryFn: async () => {
@@ -187,31 +177,23 @@ export default function FIRDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-<<<<<<< HEAD
         <TouchableOpacity
           onPress={handleBack}
           style={styles.backBtn}
           hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
           activeOpacity={0.7}
         >
-=======
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>FIR Details</Text>
         <StatusBadge status={fir.status} />
       </View>
 
-<<<<<<< HEAD
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
-=======
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         {/* Title & FIR Number */}
         <Card style={styles.section}>
           <Text style={[styles.firTitle, { color: colors.text }]}>{fir.title}</Text>
@@ -470,7 +452,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
@@ -481,11 +462,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.md,
-=======
-  },
-  backBtn: {
-    padding: Spacing.xs,
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerTitle: {
     fontSize: FontSize.lg,
@@ -499,12 +475,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl * 2,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   section: {
     marginBottom: Spacing.lg,

@@ -104,12 +104,9 @@ export default function AssistantScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ChatBubble message={item} />}
         contentContainerStyle={styles.messageList}
-<<<<<<< HEAD
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         removeClippedSubviews={Platform.OS === 'android'}
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
         ListHeaderComponent={
           messages.length <= 1 ? (
@@ -185,12 +182,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   headerLeft: {
     flexDirection: 'row',
@@ -218,12 +212,9 @@ const styles = StyleSheet.create({
   // Messages
   messageList: {
     paddingVertical: Spacing.md,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
 
   // Suggestions
@@ -276,12 +267,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   input: {
     flex: 1,

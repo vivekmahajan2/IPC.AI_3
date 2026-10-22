@@ -90,10 +90,7 @@ export default function JudgmentsScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-<<<<<<< HEAD
         scrollEventThrottle={16}
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
@@ -201,12 +198,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
     gap: Spacing.sm,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   searchInput: {
     flex: 1,
@@ -224,12 +218,9 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     paddingBottom: Spacing.xxxl,
-<<<<<<< HEAD
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-=======
->>>>>>> eb40714a35edb46ec36b4f02cd5aa214cae0f975
   },
   loadingContainer: {
     alignItems: 'center',

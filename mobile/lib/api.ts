@@ -4,13 +4,21 @@ import Constants from 'expo-constants';
 import { auth } from './auth';
 
 const getBaseUrl = (): string => {
-  // Production / Explicit deployment API URL
+  // Explicit deployment API URL takes first priority
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, '');
   }
 
-  // In production builds (Vercel, EAS APK/AAB), default to live Render backend
-  if (!__DEV__) {
+  // When running on Web in a deployed browser (e.g. *.vercel.app or custom domains)
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname;
+    if (host && host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.startsWith('10.')) {
+      return 'https://ipc-ai-backend-j9fp.onrender.com';
+    }
+  }
+
+  // In production builds (web export, standalone APK/AAB), default to live Render backend
+  if (typeof __DEV__ === 'undefined' || !__DEV__) {
     return 'https://ipc-ai-backend-j9fp.onrender.com';
   }
 
@@ -19,7 +27,7 @@ const getBaseUrl = (): string => {
   }
   
   // Dynamically resolve machine's LAN IP for Expo Go on physical devices
-  const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.packagerOpts?.host || '';
+  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest2?.extra?.expoGo?.packagerOpts?.host || '';
   if (hostUri) {
     const ip = hostUri.split(':')[0];
     return `http://${ip}:8000`;
@@ -37,7 +45,7 @@ const BASE_URL = getBaseUrl();
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 60000, // 60s to accommodate Render free-tier cold boot
   headers: {
     'Content-Type': 'application/json',
   },

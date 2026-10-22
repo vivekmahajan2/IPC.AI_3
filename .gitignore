@@ -15,6 +15,7 @@ backend/.env.*
 mobile/.env
 mobile/.env.*
 !**/.env.example
+!mobile/.env.production
 
 # ------------------------------------------------------------------------------
 # Python & Backend Artifacts

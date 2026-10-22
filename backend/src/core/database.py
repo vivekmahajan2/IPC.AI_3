@@ -51,9 +51,27 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
+    global engine, async_session
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print(f"[OK] Database initialized successfully using primary engine.")
+    except Exception as e:
+        print(f"[WARNING] Primary database connection failed ({e}).")
+        print("[INFO] Falling back to local high-performance SQLite database (ipcai.db)...")
+        engine = create_async_engine(
+            "sqlite+aiosqlite:///./ipcai.db",
+            connect_args={"check_same_thread": False},
+        )
+        async_session = async_sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("[OK] Fallback SQLite database initialized successfully.")
+
     # Run migrations/fixes on startup
     from sqlalchemy import text
     async with async_session() as session:

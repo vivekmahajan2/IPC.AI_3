@@ -1,6 +1,9 @@
 {
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
+  "env": {
+    "EXPO_PUBLIC_API_URL": "https://ipc-ai-backend-j9fp.onrender.com"
+  },
   "rewrites": [
     {
       "source": "/(.*)",

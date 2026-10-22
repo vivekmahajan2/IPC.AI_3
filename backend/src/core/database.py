@@ -39,15 +39,43 @@ class Base(DeclarativeBase):
 
 
 async def get_db() -> AsyncSession:
-    async with async_session() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
+    global engine, async_session
+    try:
+        async with async_session() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+    except Exception as e:
+        err_msg = str(e).lower()
+        if any(keyword in err_msg for keyword in ["tenant", "not found", "connection", "endpoint", "database", "refused", "closed", "timeout"]):
+            print(f"[RECOVERY] get_db caught connection failure ({e}). Ensuring SQLite fallback...")
+            engine = create_async_engine(
+                "sqlite+aiosqlite:///./ipcai.db",
+                connect_args={"check_same_thread": False},
+            )
+            async_session = async_sessionmaker(
+                engine,
+                class_=AsyncSession,
+                expire_on_commit=False,
+            )
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            async with async_session() as session:
+                try:
+                    yield session
+                    await session.commit()
+                except Exception:
+                    await session.rollback()
+                    raise
+                finally:
+                    await session.close()
+        else:
             raise
-        finally:
-            await session.close()
 
 
 async def init_db():

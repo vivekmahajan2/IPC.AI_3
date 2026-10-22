@@ -381,8 +381,10 @@ async def _init_and_seed():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import asyncio
     try:
-        await _init_and_seed()
+        await init_db()
+        asyncio.create_task(_init_and_seed())
     except Exception as e:
         import traceback
         print(f"[WARNING] Startup database initialization deferred or failed: {e}")
